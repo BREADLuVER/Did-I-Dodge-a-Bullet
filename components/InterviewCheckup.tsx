@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { RedFlag } from '@/lib/redFlags';
-import { Building2, Users, TrendingUp, Heart, FileText, BarChart3, ArrowLeft } from 'lucide-react';
+import { Building2, Users, TrendingUp, Heart, FileText, BarChart3, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Company } from '@/lib/companyUtils';
 
 // Lazy load heavy components
@@ -685,6 +685,7 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
   const [step, setStep] = useState<'company-input' | 'checkup' | 'feedback' | 'deep-dive' | 'company'>('company-input');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [showCompanyInput, setShowCompanyInput] = useState(true);
+  const [hasSavedSession, setHasSavedSession] = useState(false);
 
   // Memoize curated flags to prevent unnecessary recalculations
   const curatedFlags = useMemo(() => getCuratedFlags(redFlags), [redFlags]);
@@ -723,16 +724,20 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     }
   }, []);
 
-  // Load persisted state on mount
+  // Load persisted state on mount - but don't auto-restore to avoid skipping hero
   useEffect(() => {
     try {
       const savedStep = localStorage.getItem('checkupStep');
       const savedCompany = localStorage.getItem('selectedCompany');
       const savedShowInput = localStorage.getItem('showCompanyInput');
 
-      if (savedStep) {
-        setStep(JSON.parse(savedStep));
+      // Check if there's a saved session
+      if (savedStep && savedStep !== 'company-input') {
+        setHasSavedSession(true);
       }
+
+      // Only restore company and showInput state, not the step
+      // This prevents auto-jumping to checkup section
       if (savedCompany) {
         setSelectedCompany(JSON.parse(savedCompany));
       }
@@ -799,6 +804,18 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     updateStep('company-input');
   }, [updateStep]);
 
+  const handleRestoreSession = useCallback(() => {
+    try {
+      const savedStep = localStorage.getItem('checkupStep');
+      if (savedStep) {
+        setStep(JSON.parse(savedStep));
+        setHasSavedSession(false);
+      }
+    } catch (error) {
+      console.error('Error restoring session:', error);
+    }
+  }, []);
+
   // Handle step navigation from the indicator
   const handleStepNavigation = useCallback((stepId: string) => {
     // Validate the step transition
@@ -817,6 +834,36 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
       return (
         <div className="max-w-4xl mx-auto px-4 space-y-8">
           <StepIndicator currentStep="company-input" onStepClick={handleStepNavigation} />
+          
+          {/* Saved Session Notification */}
+          {hasSavedSession && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <RefreshCw className="w-5 h-5 text-blue-500" />
+                  <div>
+                    <p className="text-blue-800 font-medium">Continue your previous session?</p>
+                    <p className="text-blue-600 text-sm">You have an unfinished interview checkup.</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleRestoreSession}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                  >
+                    Continue
+                  </button>
+                  <button
+                    onClick={() => setHasSavedSession(false)}
+                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">
               Company Selection

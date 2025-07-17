@@ -9,6 +9,7 @@
 - **Debounce & Search**: Enhanced company search with a custom debounce hook for better UX and code clarity.
 - **Firebase Scripts**: Added robust, Windows-compatible scripts for cleaning and repopulating the companies collection with a strong schema, including fallback and error handling.
 - **Error Handling**: Improved error messages, Unicode-safe logging, and graceful fallbacks for missing files or network issues.
+- **UX Improvements**: Fixed auto-jumping to bingo section, ensuring hero section is always shown first for new visitors with optional session restoration.
 
 ---
 
@@ -42,6 +43,7 @@ A post-interview reflection and red flag identification system that helps users 
 - ✅ **Clean State Resets**: Proper cleanup for new checkups
 - ✅ **Clickable Step Indicator**: Users can navigate between steps (with restrictions)
 - ✅ **Back Button**: Allows users to reselect company during checkup
+- ✅ **Hero Section Priority**: Always shows hero section first for new visitors, with optional session restoration
 
 ### **Development Environment**
 - ✅ **Webpack Optimization**: Fixed module loading issues
