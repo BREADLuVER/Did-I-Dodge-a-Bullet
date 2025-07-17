@@ -92,13 +92,7 @@ export const redFlags: RedFlag[] = [
     severity: 'light',
     explanation: 'They care more about appearance than fair compensation'
   },
-  {
-    id: 'culture-chill-tone',
-    text: 'They say "we\'re chill"-but shift tone later',
-    category: 'culture',
-    severity: 'light',
-    explanation: 'Inconsistent messaging suggests disorganization'
-  },
+
   {
     id: 'communication-interrupt',
     text: 'Interviewer interrupts or answers for you',

@@ -1,8 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { RedFlag } from '@/lib/redFlags';
-import { Building2, Users, TrendingUp, Heart, FileText, BarChart3 } from 'lucide-react';
+import { Building2, Users, TrendingUp, Heart, FileText, BarChart3, ArrowLeft } from 'lucide-react';
+import { Company } from '@/lib/companyUtils';
+
+// Lazy load heavy components
+const CompanyPage = lazy(() => import('./CompanyPage'));
+const CompanyInput = lazy(() => import('./CompanyInput'));
 
 // Types
 interface InterviewCheckupProps {
@@ -18,25 +23,33 @@ interface RedFlagCardProps {
   onToggle: () => void;
 }
 
-interface CompanyInputProps {
-  onSubmit: (companyName: string) => void;
-  onSkip: () => void;
-}
+// Loading component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-400"></div>
+  </div>
+);
 
 // Utility functions
 const getCuratedFlags = (allFlags: RedFlag[]): RedFlag[] => {
   const medium = allFlags.filter(flag => flag.severity === 'medium');
   const light = allFlags.filter(flag => flag.severity === 'light');
 
-  // Strategic placement: 3 medium (corners + center), 6 light (edges + remaining positions)
-  const selectedMedium = medium.slice(0, 3);
-  const selectedLight = light.slice(0, 6);
+  // Shuffle the arrays to get random selection
+  const shuffledMedium = [...medium].sort(() => 0.5 - Math.random());
+  const shuffledLight = [...light].sort(() => 0.5 - Math.random());
+
+  // Strategic placement: 4 medium (corners only), 5 light (edges + center)
+  const selectedMedium = shuffledMedium.slice(0, 4);
+  const selectedLight = shuffledLight.slice(0, 5);
 
   // Create a 3x3 grid with strategic placement
+  // Corners: medium flags (positions 0, 2, 6, 8)
+  // Edges + Center: light flags (positions 1, 3, 4, 5, 7)
   const grid = [
     [selectedMedium[0], selectedLight[0], selectedMedium[1]], // Top row: medium, light, medium
-    [selectedLight[1], selectedMedium[2], selectedLight[2]], // Middle row: light, medium, light
-    [selectedLight[3], selectedLight[4], selectedLight[5]]   // Bottom row: all light
+    [selectedLight[1], selectedLight[2], selectedLight[3]],   // Middle row: light, light, light
+    [selectedMedium[2], selectedLight[4], selectedMedium[3]]  // Bottom row: medium, light, medium
   ];
 
   // Flatten the grid and return
@@ -92,37 +105,37 @@ const checkBingo = (markedFlags: Set<string>, curatedFlags: RedFlag[]): number[]
   return lines;
 };
 
-// Red Flag Card Component
-const RedFlagCard = ({ redFlag, isMarked, onToggle }: RedFlagCardProps) => {
-  const handleClick = () => {
+// Optimized Red Flag Card Component
+const RedFlagCard = React.memo(({ redFlag, isMarked, onToggle }: RedFlagCardProps) => {
+  const handleClick = useCallback(() => {
     onToggle();
-  };
+  }, [onToggle]);
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       onToggle();
     }
-  };
+  }, [onToggle]);
 
-  const getSeverityColor = () => {
+  const getSeverityColor = useMemo(() => {
     switch (redFlag.severity) {
       case 'medium':
-        return 'border-yellow-500 bg-white';
+        return 'border-orange-500 bg-white';
       case 'light':
-        return 'border-gray-400 bg-white';
+        return 'border-yellow-500 bg-white';
       default:
         return 'border-gray-300 bg-white';
     }
-  };
+  }, [redFlag.severity]);
 
   return (
     <div
-              className={`p-4 rounded-lg border-2 text-sm font-medium text-center flex flex-col items-center justify-center min-h-[120px] transition-all duration-200 ${
-          isMarked
-            ? 'border-red-500 bg-red-500 text-white shadow-lg'
-            : `${getSeverityColor()} hover:border-red-500 hover:bg-gray-50 cursor-pointer`
-        }`}
+      className={`p-4 rounded-lg border-2 text-sm font-medium text-center flex flex-col items-center justify-center min-h-[120px] transition-all duration-200 ${
+        isMarked
+          ? 'border-red-500 bg-red-500 text-white shadow-lg'
+          : `${getSeverityColor} hover:border-red-500 hover:bg-gray-50 cursor-pointer`
+      }`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -131,93 +144,20 @@ const RedFlagCard = ({ redFlag, isMarked, onToggle }: RedFlagCardProps) => {
       aria-pressed={isMarked}
     >
       <p className="leading-tight">{redFlag.text}</p>
-      
-      {isMarked && (
-        <div className="mt-2 text-lg">
-          🚩
-        </div>
-      )}
     </div>
   );
-};
+});
 
-// Company Input Component
-const CompanyInput = ({ onSubmit, onSkip }: CompanyInputProps) => {
-  const [companyName, setCompanyName] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (companyName.trim()) {
-      onSubmit(companyName.trim());
-    }
-  };
-
-  return (
-    <div className="flex justify-center items-center min-h-[400px] w-full">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md mx-auto">
-        <div className="text-center mb-6">
-          <Building2 className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-gray-800">
-            Enter company name to unlock:
-          </h3>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div className="flex items-start space-x-3">
-            <Users className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-            <span className="text-sm text-gray-600">Share your experience to others</span>
-          </div>
-          <div className="flex items-start space-x-3">
-            <TrendingUp className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-            <span className="text-sm text-gray-600">See common red flags at this company</span>
-          </div>
-          <div className="flex items-start space-x-3">
-            <Heart className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-            <span className="text-sm text-gray-600">Help future candidates</span>
-          </div>
-          <div className="flex items-start space-x-3">
-            <Building2 className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
-            <span className="text-sm text-gray-600">Get company-specific insights</span>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Enter company name..."
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
-            required
-          />
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-500 hover:to-orange-600 transition-all duration-200 transform hover:scale-105 animate-pulse"
-          >
-            Start Checkup
-          </button>
-        </form>
-
-        <div className="text-center mt-4">
-          <button
-            onClick={onSkip}
-            className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-gray-500 hover:to-gray-600 transition-all duration-200 transform hover:scale-105"
-          >
-            Skip for anonymous checkup
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+RedFlagCard.displayName = 'RedFlagCard';
 
 // Quick Checkup Component
-const QuickCheckup = ({ 
+const QuickCheckup = React.memo(({ 
   curatedFlags, 
   markedFlags, 
   onToggleFlag, 
   onSubmitResults, 
   onRerollBoard,
+  onBack,
   companyName 
 }: {
   curatedFlags: RedFlag[];
@@ -225,13 +165,25 @@ const QuickCheckup = ({
   onToggleFlag: (flagId: string) => void;
   onSubmitResults: () => void;
   onRerollBoard: () => void;
+  onBack: () => void;
   companyName?: string | null;
 }) => {
-  const bingoLines = checkBingo(markedFlags, curatedFlags);
+  const bingoLines = useMemo(() => checkBingo(markedFlags, curatedFlags), [markedFlags, curatedFlags]);
   const bingoCount = bingoLines.length;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 space-y-8 w-full">
+    <div className="space-y-8 w-full">
+      {/* Back Button */}
+      <div className="flex justify-start">
+        <button
+          onClick={onBack}
+          className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <span className="text-sm font-medium">Change Company</span>
+        </button>
+      </div>
+
       {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">
@@ -253,248 +205,372 @@ const QuickCheckup = ({
 
       {/* Bingo Notification */}
       {bingoCount > 0 && (
-        <div className="text-center">
-          <div className="bg-red-500 text-white px-6 py-3 rounded-lg inline-block animate-bounce">
-            <span className="font-bold text-lg">BINGO! 🚩</span><br />
-            <span className="text-sm">You might have dodged a bullet!</span>
+        <div className="bg-red-100 border-2 border-red-500 rounded-xl p-6 text-center">
+          <div className="text-2xl font-bold text-red-700 mb-2">
+            🚨 BINGO! 🚨
+          </div>
+          <div className="text-red-600">
+            You&apos;ve marked {bingoCount} complete line{bingoCount > 1 ? 's' : ''} of red flags.
+            <br />
+            <strong>This is a major warning sign!</strong>
           </div>
         </div>
       )}
 
-      {/* 3x3 Grid */}
-      <div className="flex justify-center">
-        <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-          {curatedFlags.map((redFlag, index) => (
-            <RedFlagCard
-              key={redFlag.id}
-              redFlag={redFlag}
-              isMarked={markedFlags.has(redFlag.id)}
-              onToggle={() => onToggleFlag(redFlag.id)}
-            />
-          ))}
-        </div>
+      {/* Bingo Grid */}
+      <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+        {curatedFlags.map((flag, index) => (
+          <RedFlagCard
+            key={flag.id}
+            redFlag={flag}
+            isMarked={markedFlags.has(flag.id)}
+            onToggle={() => onToggleFlag(flag.id)}
+          />
+        ))}
       </div>
 
-      {/* Stats */}
-      <div className="text-center space-y-2">
-        <div className="text-sm text-gray-600">
-          {bingoCount > 0 && (
-            <span className="text-red-600 font-medium">
-              {bingoCount} bingo line{bingoCount > 1 ? 's' : ''} found!
-            </span>
-          )}
-        </div>
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <button
+          onClick={onSubmitResults}
+          disabled={markedFlags.size === 0}
+          className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        >
+          Get My Results
+        </button>
+        <button
+          onClick={onRerollBoard}
+          className="bg-gray-200 text-gray-700 px-6 py-3 rounded-full font-semibold hover:bg-gray-300 transition-all duration-300"
+        >
+          New Board
+        </button>
       </div>
-
-              {/* Reroll Board Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={onRerollBoard}
-            className="bg-gray-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-900 transition-colors"
-          >
-            Reroll Board
-          </button>
-        </div>
-
-        {/* Action Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={onSubmitResults}
-            disabled={markedFlags.size === 0}
-            className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-orange-500 hover:to-orange-600 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            Get Your Results
-          </button>
-        </div>
     </div>
   );
-};
+});
+
+QuickCheckup.displayName = 'QuickCheckup';
 
 // Results Feedback Component
-const ResultsFeedback = ({ 
+const ResultsFeedback = React.memo(({ 
   markedFlags, 
   redFlags, 
   companyName, 
-  onDownloadResults, 
   onViewCompanyPage, 
   onExploreMoreFlags, 
-  onWriteNotes, 
-  onNewCheckup 
+  onNewCheckup
 }: {
   markedFlags: Set<string>;
   redFlags: RedFlag[];
   companyName?: string | null;
-  onDownloadResults: () => void;
   onViewCompanyPage: () => void;
   onExploreMoreFlags: () => void;
-  onWriteNotes: () => void;
   onNewCheckup?: () => void;
 }) => {
-  const markedFlagObjects = redFlags.filter(flag => markedFlags.has(flag.id));
-  const categoryBreakdown = getCategoryBreakdown(markedFlags, redFlags);
-  const breakdown = {
-    medium: markedFlagObjects.filter(flag => flag.severity === 'medium').length,
-    light: markedFlagObjects.filter(flag => flag.severity === 'light').length,
-  };
+  const markedFlagObjects = useMemo(() => 
+    redFlags.filter(flag => markedFlags.has(flag.id)), 
+    [markedFlags, redFlags]
+  );
+  
+  const categoryBreakdown = useMemo(() => 
+    getCategoryBreakdown(markedFlags, redFlags), 
+    [markedFlags, redFlags]
+  );
+
+  const severityBreakdown = useMemo(() => {
+    const light = markedFlagObjects.filter(flag => flag.severity === 'light').length;
+    const medium = markedFlagObjects.filter(flag => flag.severity === 'medium').length;
+    return { light, medium };
+  }, [markedFlagObjects]);
+
+  const handleDownloadResults = useCallback(() => {
+    const content = `Interview Red Flag Checkup Results
+
+Company: ${companyName || 'Not specified'}
+Date: ${new Date().toLocaleDateString()}
+
+Total Red Flags Marked: ${markedFlags.size}
+
+Severity Breakdown:
+- Light Flags: ${severityBreakdown.light}
+- Medium Flags: ${severityBreakdown.medium}
+
+Top Categories:
+${categoryBreakdown.map(cat => `- ${cat.category}: ${cat.count}`).join('\n')}
+
+Marked Red Flags:
+${markedFlagObjects.map(flag => `• ${flag.text} (${flag.severity})`).join('\n')}
+
+${severityBreakdown.medium > 0 ? '⚠️  You marked medium-severity flags. Consider these carefully.' : ''}
+${markedFlags.size >= 5 ? '🚨  High number of red flags detected. Proceed with caution.' : ''}
+
+Trust your instincts. You deserve better.`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `interview-checkup-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [markedFlags, companyName, severityBreakdown, categoryBreakdown, markedFlagObjects]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 space-y-8 w-full">
-      {/* Result Summary */}
-      <div className="text-center space-y-6">
-        <h2 className="text-3xl font-bold text-gray-800">
-          Your Checkup Results
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          Your Interview Checkup Results
         </h2>
-        
-        <div className="flex justify-center">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
-            <div className="text-3xl font-bold text-gray-800 mb-2">
-              {markedFlags.size} flags marked
-            </div>
-            <div className="text-lg text-gray-600 mb-4">
-              {categoryBreakdown.length > 0 && (
-                <span>
-                  Mostly around {categoryBreakdown.map(cat => cat.category).join(', ')}
-                </span>
-              )}
-            </div>
-            
-            {/* Visual Feedback Bar */}
-            <div className="flex justify-center space-x-1 mb-4">
-              {Array.from({ length: breakdown.medium }, (_, i) => (
-                <div key={`medium-${i}`} className="w-4 h-4 bg-yellow-500 rounded"></div>
-              ))}
-              {Array.from({ length: breakdown.light }, (_, i) => (
-                <div key={`light-${i}`} className="w-4 h-4 bg-green-500 rounded"></div>
-              ))}
-            </div>
+        <p className="text-xl text-gray-600">
+          Here&apos;s what your gut was telling you:
+        </p>
+      </div>
 
-            {markedFlags.size > 0 && (
-              <div className="text-sm text-red-600 font-medium">
-                Trust your instincts. You deserve better.
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+          <div className="text-3xl font-bold text-red-500 mb-2">{markedFlags.size}</div>
+          <div className="text-gray-600">Red Flags Marked</div>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+          <div className="text-3xl font-bold text-orange-500 mb-2">{severityBreakdown.medium}</div>
+          <div className="text-gray-600">Medium Severity</div>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+          <div className="text-3xl font-bold text-yellow-500 mb-2">{severityBreakdown.light}</div>
+          <div className="text-gray-600">Light Severity</div>
+        </div>
+      </div>
+
+      {/* Category Breakdown */}
+      {categoryBreakdown.length > 0 && (
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Top Categories</h3>
+          <div className="space-y-3">
+            {categoryBreakdown.map(({ category, count }) => (
+              <div key={category} className="flex justify-between items-center">
+                <span className="capitalize text-gray-700">{category}</span>
+                <span className="font-semibold text-orange-600">{count}</span>
               </div>
-            )}
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Severity Scale */}
-        <div className="flex justify-center">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-              Did any of these feel like deal-breakers?
-            </h3>
-            <div className="flex justify-center space-x-4">
-              <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                Not really
-              </button>
-              <button className="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors">
-                Some concerns
-              </button>
-              <button className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
-                Major red flags
-              </button>
+      {/* Marked Flags List */}
+      <div className="bg-white rounded-xl p-6 shadow-lg">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">Your Marked Red Flags</h3>
+        <div className="space-y-3">
+          {markedFlagObjects.map(flag => (
+            <div key={flag.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
+                flag.severity === 'medium' ? 'bg-orange-500' : 'bg-yellow-500'
+              }`}></div>
+              <div>
+                <p className="text-gray-800 font-medium">{flag.text}</p>
+                <p className="text-sm text-gray-600 capitalize">{flag.category} • {flag.severity}</p>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
+      </div>
 
-        {/* Next Steps */}
-        <div className="space-y-4 text-center">
-          <h3 className="text-xl font-semibold text-gray-800">
-            What would you like to do next?
-          </h3>
-          
-          <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
-            {companyName && (
-              <button
-                onClick={onViewCompanyPage}
-                className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                <Users className="w-5 h-5" />
-                <span>View company page</span>
-              </button>
-            )}
-            
-            <button
-              onClick={onDownloadResults}
-              className="flex items-center justify-center space-x-2 bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors"
-            >
-              <span>Save anonymously</span>
-            </button>
-            
-            <button
-              onClick={onExploreMoreFlags}
-              className="flex items-center justify-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span>Explore more flags</span>
-            </button>
-          </div>
-
-          <div className="pt-4 flex justify-center">
-            <button
-              onClick={onWriteNotes}
-              className="flex items-center justify-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Write notes to your future self</span>
-            </button>
-          </div>
-        </div>
-
-        {/* New Checkup Button */}
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <button
+          onClick={handleDownloadResults}
+          className="bg-gradient-to-r from-green-400 to-green-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          Download Results
+        </button>
+        {companyName && (
+          <button
+            onClick={onViewCompanyPage}
+            className="bg-blue-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            View Company Insights
+          </button>
+        )}
+        <button
+          onClick={onExploreMoreFlags}
+          className="bg-purple-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          Explore All Flags
+        </button>
         {onNewCheckup && (
-          <div className="pt-4">
-            <button
-              onClick={onNewCheckup}
-              className="text-sm text-gray-500 hover:text-gray-700 underline"
-            >
-              Start a new checkup
-            </button>
-          </div>
+          <button
+            onClick={onNewCheckup}
+            className="bg-gray-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            New Checkup
+          </button>
         )}
       </div>
     </div>
   );
-};
+});
+
+ResultsFeedback.displayName = 'ResultsFeedback';
 
 // Deep Dive Component
-const DeepDive = ({ onBackToResults }: { onBackToResults: () => void }) => {
+const DeepDive = React.memo(({ 
+  redFlags, 
+  onBackToResults 
+}: { 
+  redFlags: RedFlag[];
+  onBackToResults: () => void;
+}) => {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
+
+  const categories = useMemo(() => 
+    Array.from(new Set(redFlags.map(flag => flag.category))).sort(), 
+    [redFlags]
+  );
+
+  const filteredFlags = useMemo(() => 
+    redFlags.filter(flag => {
+      const categoryMatch = selectedCategory === 'all' || flag.category === selectedCategory;
+      const severityMatch = selectedSeverity === 'all' || flag.severity === selectedSeverity;
+      return categoryMatch && severityMatch;
+    }), 
+    [redFlags, selectedCategory, selectedSeverity]
+  );
+
+  const getCategoryColor = useCallback((category: string) => {
+    const colors: Record<string, string> = {
+      culture: 'bg-blue-100 text-blue-800',
+      leadership: 'bg-purple-100 text-purple-800',
+      role: 'bg-green-100 text-green-800',
+      process: 'bg-yellow-100 text-yellow-800',
+      communication: 'bg-red-100 text-red-800',
+      compensation: 'bg-indigo-100 text-indigo-800',
+      stability: 'bg-pink-100 text-pink-800',
+      environment: 'bg-gray-100 text-gray-800',
+    };
+    return colors[category] || 'bg-gray-100 text-gray-800';
+  }, []);
+
+  const getSeverityColor = useCallback((severity: string) => {
+    return severity === 'medium' ? 'border-orange-500 bg-orange-50' : 'border-yellow-500 bg-yellow-50';
+  }, []);
+
   return (
-    <div className="max-w-4xl mx-auto px-4 space-y-8 w-full">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">
-          Explore More Flags
-        </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Dive deeper into specific categories or see what others have flagged.
-        </p>
+    <div className="max-w-6xl mx-auto px-4 space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">All Red Flags</h2>
+          <p className="text-gray-600">Browse and learn about all available red flags</p>
+        </div>
+        <button
+          onClick={onBackToResults}
+          className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-300 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Results</span>
+        </button>
       </div>
 
-              {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-4 w-full">
-        {['culture', 'leadership', 'process', 'communication', 'compensation', 'stability'].map(category => (
-          <button
-            key={category}
-            className="px-6 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors capitalize"
-          >
-            {category}
-          </button>
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4">
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        >
+          <option value="all">All Categories</option>
+          {categories.map(category => (
+            <option key={category} value={category}>
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedSeverity}
+          onChange={(e) => setSelectedSeverity(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        >
+          <option value="all">All Severities</option>
+          <option value="light">Light</option>
+          <option value="medium">Medium</option>
+        </select>
+      </div>
+
+      {/* Flags Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredFlags.map(flag => (
+          <div key={flag.id} className={`border-2 rounded-lg p-4 ${getSeverityColor(flag.severity)}`}>
+            <div className="flex items-start justify-between mb-3">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(flag.category)}`}>
+                {flag.category}
+              </span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                flag.severity === 'medium' ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {flag.severity}
+              </span>
+            </div>
+            <p className="text-gray-800 font-medium mb-2">{flag.text}</p>
+            {flag.explanation && (
+              <p className="text-sm text-gray-600">{flag.explanation}</p>
+            )}
+          </div>
         ))}
       </div>
 
-      {/* Placeholder for category-specific flags */}
-      <div className="text-center text-gray-500 py-12">
-        <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-        <p>Category-specific flags coming soon!</p>
-      </div>
+      {filteredFlags.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No flags match your current filters.</p>
+        </div>
+      )}
+    </div>
+  );
+});
 
-      {/* Back to Results */}
-      <div className="flex justify-center">
-        <button
-          onClick={onBackToResults}
-          className="text-sm text-gray-500 hover:text-gray-700 underline"
-        >
-          ← Back to your results
-        </button>
+DeepDive.displayName = 'DeepDive';
+
+// Step Indicator Component
+const StepIndicator = ({ currentStep }: { currentStep: string }) => {
+  const steps = [
+    { id: 'company-input', label: 'Company', icon: '🏢' },
+    { id: 'checkup', label: 'Checkup', icon: '🎯' },
+    { id: 'feedback', label: 'Results', icon: '📊' },
+  ];
+
+  const getCurrentStepIndex = () => {
+    return steps.findIndex(step => step.id === currentStep);
+  };
+
+  const currentIndex = getCurrentStepIndex();
+
+  return (
+    <div className="flex justify-center mb-8">
+      <div className="flex items-center space-x-4">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex items-center">
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold ${
+              index <= currentIndex 
+                ? 'bg-orange-500 text-white' 
+                : 'bg-gray-200 text-gray-500'
+            }`}>
+              {step.icon}
+            </div>
+            <span className={`ml-2 text-sm font-medium ${
+              index <= currentIndex ? 'text-gray-800' : 'text-gray-500'
+            }`}>
+              {step.label}
+            </span>
+            {index < steps.length - 1 && (
+              <div className={`w-8 h-0.5 mx-4 ${
+                index < currentIndex ? 'bg-orange-500' : 'bg-gray-200'
+              }`} />
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -502,146 +578,211 @@ const DeepDive = ({ onBackToResults }: { onBackToResults: () => void }) => {
 
 // Main InterviewCheckup Component
 export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewCheckup }: InterviewCheckupProps) => {
+  const [step, setStep] = useState<'company-input' | 'checkup' | 'feedback' | 'deep-dive' | 'company'>('company-input');
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [showCompanyInput, setShowCompanyInput] = useState(true);
-  const [companyName, setCompanyName] = useState<string | null>(null);
-  const [step, setStep] = useState<'checkup' | 'feedback' | 'deep-dive'>('checkup');
-  const [curatedFlags, setCuratedFlags] = useState<RedFlag[]>([]);
 
-  // Initialize curated flags only once when component mounts or redFlags change
+  // Memoize curated flags to prevent unnecessary recalculations
+  const curatedFlags = useMemo(() => getCuratedFlags(redFlags), [redFlags]);
+
+  // Persist state in localStorage
+  const persistState = useCallback((key: string, value: any) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error('Error persisting state:', error);
+    }
+  }, []);
+
+  const updateStep = useCallback((newStep: 'company-input' | 'checkup' | 'feedback' | 'deep-dive' | 'company') => {
+    setStep(newStep);
+    persistState('checkupStep', newStep);
+  }, [persistState]);
+
+  const updateSelectedCompany = useCallback((company: Company | null) => {
+    setSelectedCompany(company);
+    persistState('selectedCompany', company);
+  }, [persistState]);
+
+  const updateShowCompanyInput = useCallback((show: boolean) => {
+    setShowCompanyInput(show);
+    persistState('showCompanyInput', show);
+  }, [persistState]);
+
+  const clearPersistedState = useCallback(() => {
+    try {
+      localStorage.removeItem('checkupStep');
+      localStorage.removeItem('selectedCompany');
+      localStorage.removeItem('showCompanyInput');
+    } catch (error) {
+      console.error('Error clearing persisted state:', error);
+    }
+  }, []);
+
+  // Load persisted state on mount
   useEffect(() => {
-    setCuratedFlags(getCuratedFlags(redFlags));
-  }, [redFlags]);
+    try {
+      const savedStep = localStorage.getItem('checkupStep');
+      const savedCompany = localStorage.getItem('selectedCompany');
+      const savedShowInput = localStorage.getItem('showCompanyInput');
 
-  // Event handlers
-  const handleCompanySubmit = (name: string) => {
-    setCompanyName(name);
-    setShowCompanyInput(false);
-  };
+      if (savedStep) {
+        setStep(JSON.parse(savedStep));
+      }
+      if (savedCompany) {
+        setSelectedCompany(JSON.parse(savedCompany));
+      }
+      if (savedShowInput) {
+        setShowCompanyInput(JSON.parse(savedShowInput));
+      }
+    } catch (error) {
+      console.error('Error loading persisted state:', error);
+    }
+  }, []);
 
-  const handleSkipCompany = () => {
-    setShowCompanyInput(false);
-  };
+  const handleCompanySubmit = useCallback((company: Company | null) => {
+    updateSelectedCompany(company);
+    updateShowCompanyInput(false);
+    updateStep('checkup');
+  }, [updateSelectedCompany, updateShowCompanyInput, updateStep]);
 
-  const handleSubmitResults = () => {
-    setStep('feedback');
-  };
+  const handleSkipCompany = useCallback(() => {
+    updateSelectedCompany(null);
+    updateShowCompanyInput(false);
+    updateStep('checkup');
+  }, [updateSelectedCompany, updateShowCompanyInput, updateStep]);
 
-  const handleDownloadResults = () => {
-    const markedFlagObjects = redFlags.filter(flag => markedFlags.has(flag.id));
-    const breakdown = {
-      medium: markedFlagObjects.filter(flag => flag.severity === 'medium').length,
-      light: markedFlagObjects.filter(flag => flag.severity === 'light').length,
-    };
-    
-    const content = `
-INTERVIEW CHECKUP RESULTS
+  const handleStartCheckup = useCallback(() => {
+    updateStep('checkup');
+  }, [updateStep]);
 
-Marked ${markedFlags.size} out of 9 red flags
-${companyName ? `Company: ${companyName}` : 'Anonymous submission'}
+  const handleSubmitResults = useCallback(async () => {
+    updateStep('feedback');
+  }, [updateStep]);
 
-SEVERITY BREAKDOWN:
-- Medium Red Flags: ${breakdown.medium}
-- Light Red Flags: ${breakdown.light}
+  const handleViewCompanyPage = useCallback(() => {
+    updateStep('company');
+  }, [updateStep]);
 
-RED FLAGS YOU IDENTIFIED:
-${markedFlagObjects.map((flag, index) => `${index + 1}. ${flag.text}`).join('\n')}
+  const handleExploreMoreFlags = useCallback(() => {
+    updateStep('deep-dive');
+  }, [updateStep]);
 
-Generated at: ${new Date().toLocaleDateString()}
-    `.trim();
+  const handleBackToResults = useCallback(() => {
+    updateStep('feedback');
+  }, [updateStep]);
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'interview-checkup-results.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  const handleRerollBoard = useCallback(() => {
+    // This will trigger a re-render with new curated flags
+    window.location.reload();
+  }, []); // No dependencies needed for reload
 
-  const handleViewCompanyPage = () => {
-    alert('Company page coming soon!');
-  };
+  const handleNewCheckup = useCallback(() => {
+    clearPersistedState();
+    setStep('company-input');
+    setSelectedCompany(null);
+    setShowCompanyInput(true);
+    if (onNewCheckup) {
+      onNewCheckup();
+    }
+  }, [clearPersistedState, onNewCheckup]);
 
-  const handleExploreMoreFlags = () => {
-    setStep('deep-dive');
-  };
+  const handleBackFromCompany = useCallback(() => {
+    updateStep('feedback');
+  }, [updateStep]);
 
-  const handleWriteNotes = () => {
-    alert('Reflection journal coming soon!');
-  };
-
-  const handleBackToResults = () => {
-    setStep('feedback');
-  };
-
-  const handleRerollBoard = () => {
-    setCuratedFlags(getCuratedFlags(redFlags));
-  };
+  const handleBackToCompanyInput = useCallback(() => {
+    updateStep('company-input');
+  }, [updateStep]);
 
   // Render based on current step
-  return (
-    <div className="max-w-6xl mx-auto px-4 space-y-8 w-full">
-      {/* Company Input Gate */}
-      {showCompanyInput && (
-        <CompanyInput onSubmit={handleCompanySubmit} onSkip={handleSkipCompany} />
-      )}
-
-      {/* Overlay Message (when company input is shown) */}
-      {showCompanyInput && (
-        <div className="relative">
-          <div className="pointer-events-none">
-            <QuickCheckup
-              curatedFlags={curatedFlags}
-              markedFlags={markedFlags}
-              onToggleFlag={onToggleFlag}
-              onSubmitResults={handleSubmitResults}
-              onRerollBoard={handleRerollBoard}
-              companyName={companyName}
+  switch (step) {
+    case 'company-input':
+      return (
+        <div className="max-w-4xl mx-auto px-4 space-y-8">
+          <StepIndicator currentStep="company-input" />
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Company Selection
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
+              Let&apos;s start by entering the company name for your interview checkup.
+            </p>
+          </div>
+          <Suspense fallback={<LoadingSpinner />}>
+            <CompanyInput
+              onCompanySelect={handleCompanySubmit}
+              onSkip={handleSkipCompany}
             />
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 text-center shadow-lg max-w-md mx-4">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Enter company name or skip to start
-              </h3>
-              <p className="text-gray-600">
-                Your interview checkup is ready to begin
-              </p>
-            </div>
-          </div>
+          </Suspense>
         </div>
-      )}
-
-      {/* Step Content */}
-      {step === 'checkup' && !showCompanyInput && (
+      );
+    case 'checkup':
+      return (
+        <div className="max-w-4xl mx-auto px-4 space-y-8">
+          <StepIndicator currentStep="checkup" />
+          <QuickCheckup
+            curatedFlags={curatedFlags}
+            markedFlags={markedFlags}
+            onToggleFlag={onToggleFlag}
+            onSubmitResults={handleSubmitResults}
+            onRerollBoard={handleRerollBoard}
+            onBack={handleBackToCompanyInput}
+            companyName={selectedCompany?.name}
+          />
+        </div>
+      );
+    case 'feedback':
+      return (
+        <div className="max-w-4xl mx-auto px-4 space-y-8">
+          <StepIndicator currentStep="feedback" />
+          <ResultsFeedback
+            markedFlags={markedFlags}
+            redFlags={redFlags}
+            companyName={selectedCompany?.name}
+            onViewCompanyPage={handleViewCompanyPage}
+            onExploreMoreFlags={handleExploreMoreFlags}
+            onNewCheckup={handleNewCheckup}
+          />
+        </div>
+      );
+    case 'deep-dive':
+      return (
+        <DeepDive
+          redFlags={redFlags}
+          onBackToResults={handleBackToResults}
+        />
+      );
+         case 'company':
+       return selectedCompany ? (
+         <Suspense fallback={<LoadingSpinner />}>
+           <CompanyPage
+             companyName={selectedCompany.name}
+             onBack={handleBackFromCompany}
+           />
+         </Suspense>
+       ) : (
+        <div className="text-center py-12">
+          <p className="text-gray-500">Company not found.</p>
+          <button
+            onClick={handleBackFromCompany}
+            className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full"
+          >
+            Back to Results
+          </button>
+        </div>
+      );
+    default:
+      return (
         <QuickCheckup
           curatedFlags={curatedFlags}
           markedFlags={markedFlags}
           onToggleFlag={onToggleFlag}
           onSubmitResults={handleSubmitResults}
           onRerollBoard={handleRerollBoard}
-          companyName={companyName}
+          onBack={handleBackToCompanyInput}
+          companyName={selectedCompany?.name}
         />
-      )}
-
-      {step === 'feedback' && (
-        <ResultsFeedback
-          markedFlags={markedFlags}
-          redFlags={redFlags}
-          companyName={companyName}
-          onDownloadResults={handleDownloadResults}
-          onViewCompanyPage={handleViewCompanyPage}
-          onExploreMoreFlags={handleExploreMoreFlags}
-          onWriteNotes={handleWriteNotes}
-          onNewCheckup={onNewCheckup}
-        />
-      )}
-
-      {step === 'deep-dive' && (
-        <DeepDive onBackToResults={handleBackToResults} />
-      )}
-    </div>
-  );
+      );
+  }
 }; 

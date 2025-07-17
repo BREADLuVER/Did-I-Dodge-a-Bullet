@@ -1,0 +1,257 @@
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { 
+  getFirestore, 
+  Firestore, 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  doc, 
+  getDocs, 
+  query, 
+  where, 
+  serverTimestamp 
+} from 'firebase/firestore';
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+// Singleton pattern to prevent multiple initializations
+let firebaseApp: FirebaseApp | null = null;
+let firestoreDB: Firestore | null = null;
+
+// Initialize Firebase only once
+export const initializeFirebase = (): { app: FirebaseApp; db: Firestore } => {
+  if (!firebaseApp) {
+    // Check if Firebase is already initialized
+    const existingApps = getApps();
+    if (existingApps.length > 0) {
+      firebaseApp = existingApps[0];
+    } else {
+      firebaseApp = initializeApp(firebaseConfig);
+    }
+  }
+
+  if (!firestoreDB) {
+    firestoreDB = getFirestore(firebaseApp);
+  }
+
+  return { app: firebaseApp, db: firestoreDB };
+};
+
+// Get Firebase instances
+export const getFirebaseApp = (): FirebaseApp => {
+  if (!firebaseApp) {
+    const { app } = initializeFirebase();
+    return app;
+  }
+  return firebaseApp;
+};
+
+export const getFirestoreDB = (): Firestore => {
+  if (!firestoreDB) {
+    const { db } = initializeFirebase();
+    return db;
+  }
+  return firestoreDB;
+};
+
+// Export for backward compatibility
+export const db = getFirestoreDB();
+export const app = getFirebaseApp();
+
+// Validate configuration
+export const validateFirebaseConfig = (): boolean => {
+  const requiredKeys = [
+    'NEXT_PUBLIC_FIREBASE_API_KEY',
+    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+    'NEXT_PUBLIC_FIREBASE_APP_ID',
+  ];
+
+  const missingKeys = requiredKeys.filter(key => !process.env[key]);
+  
+  if (missingKeys.length > 0) {
+    console.error('Missing Firebase configuration keys:', missingKeys);
+    return false;
+  }
+
+  return true;
+};
+
+// Initialize on module load
+if (typeof window !== 'undefined') {
+  // Only initialize on client side
+  try {
+    if (validateFirebaseConfig()) {
+      initializeFirebase();
+      console.log('✅ Firebase initialized successfully');
+    } else {
+      console.warn('⚠️ Firebase configuration incomplete');
+    }
+  } catch (error) {
+    console.error('❌ Firebase initialization failed:', error);
+  }
+}
+
+// Database types
+export interface InterviewSubmission {
+  companyName?: string | null;
+  markedFlags: string[];
+  totalFlags: number;
+  severityBreakdown: {
+    light: number;
+    medium: number;
+  };
+  timestamp: any; // Firestore timestamp
+  userAgent?: string;
+  ipHash?: string;
+  sessionId: string;
+}
+
+export interface CompanyInsights {
+  companyName: string;
+  totalSubmissions: number;
+  commonFlags: string[];
+  averageFlagCount: number;
+  severityTrends: {
+    light: number;
+    medium: number;
+  };
+  lastUpdated: any; // Firestore timestamp
+}
+
+// Database functions
+export const submitInterviewCheckup = async (data: Omit<InterviewSubmission, 'timestamp'>) => {
+  if (!firestoreDB) {
+    throw new Error('Firebase not initialized. Please set up your Firebase configuration.');
+  }
+  
+  try {
+    const submissionData: InterviewSubmission = {
+      ...data,
+      timestamp: serverTimestamp()
+    };
+    
+    const docRef = await addDoc(collection(firestoreDB, 'submissions'), submissionData);
+    
+    // Update company insights if company name provided
+    if (data.companyName) {
+      await updateCompanyInsights(data.companyName, submissionData);
+    }
+    
+    return docRef.id;
+  } catch (error) {
+    console.error('Error submitting interview checkup:', error);
+    throw error;
+  }
+};
+
+export const updateCompanyInsights = async (companyName: string, submissionData: InterviewSubmission) => {
+  if (!firestoreDB) {
+    console.warn('Firebase not initialized. Skipping company insights update.');
+    return;
+  }
+  
+  try {
+    const normalizedCompanyName = normalizeCompanyName(companyName);
+    
+    // Check if company insights already exist
+    const companyQuery = query(
+      collection(firestoreDB, 'company_insights'),
+      where('companyName', '==', normalizedCompanyName)
+    );
+    
+    const querySnapshot = await getDocs(companyQuery);
+    
+    if (!querySnapshot.empty) {
+      // Update existing company insights
+      const docRef = doc(firestoreDB, 'company_insights', querySnapshot.docs[0].id);
+      const existingData = querySnapshot.docs[0].data() as CompanyInsights;
+      
+      const updatedData = {
+        totalSubmissions: existingData.totalSubmissions + 1,
+        commonFlags: Array.from(new Set([...existingData.commonFlags, ...submissionData.markedFlags])),
+        averageFlagCount: (existingData.averageFlagCount * existingData.totalSubmissions + submissionData.markedFlags.length) / (existingData.totalSubmissions + 1),
+        severityTrends: {
+          light: existingData.severityTrends.light + submissionData.severityBreakdown.light,
+          medium: existingData.severityTrends.medium + submissionData.severityBreakdown.medium
+        },
+        lastUpdated: serverTimestamp()
+      };
+      
+      await updateDoc(docRef, updatedData);
+    } else {
+      // Create new company insights
+      await addDoc(collection(firestoreDB, 'company_insights'), {
+        companyName: normalizedCompanyName,
+        totalSubmissions: 1,
+        commonFlags: submissionData.markedFlags,
+        averageFlagCount: submissionData.markedFlags.length,
+        severityTrends: submissionData.severityBreakdown,
+        lastUpdated: serverTimestamp()
+      });
+    }
+  } catch (error) {
+    console.error('Error updating company insights:', error);
+    // Don't throw error - company insights update is not critical
+  }
+};
+
+export const getCompanyInsights = async (companyName: string): Promise<CompanyInsights | null> => {
+  if (!firestoreDB) {
+    console.warn('Firebase not initialized. Cannot get company insights.');
+    return null;
+  }
+  
+  try {
+    const normalizedCompanyName = normalizeCompanyName(companyName);
+    
+    const companyQuery = query(
+      collection(firestoreDB, 'company_insights'),
+      where('companyName', '==', normalizedCompanyName)
+    );
+    
+    const querySnapshot = await getDocs(companyQuery);
+    
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data() as CompanyInsights;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting company insights:', error);
+    return null;
+  }
+};
+
+// Utility functions
+export const normalizeCompanyName = (input: string): string => {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\b(inc|corp|llc|ltd|co|company)\b/g, '')
+    .trim();
+};
+
+export const generateSessionId = (): string => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
+export const hashIP = async (ip: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(ip);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}; 

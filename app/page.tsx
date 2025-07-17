@@ -1,22 +1,55 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { InterviewCheckup } from '@/components/InterviewCheckup';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { getBalancedRedFlags, RedFlag } from '@/lib/redFlags';
 import { Target, AlertTriangle, Heart, RefreshCw, ChevronDown, Zap, Shield, Eye } from 'lucide-react';
+
+// Lazy load heavy components
+const InterviewCheckup = lazy(() => import('@/components/InterviewCheckup').then(mod => ({ default: mod.InterviewCheckup })));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-32 border-b-2 border-orange-400"></div>
+  </div>
+);
 
 export default function Home() {
   const [redFlags, setRedFlags] = useState<RedFlag[]>([]);
   const [markedFlags, setMarkedFlags] = useState<Set<string>>(new Set());
-
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setRedFlags(getBalancedRedFlags());
+    // Load red flags asynchronously
+    const loadRedFlags = async () => {
+      try {
+        const flags = getBalancedRedFlags();
+        setRedFlags(flags);
+        
+        // Load marked flags from localStorage on page load
+        const savedMarkedFlags = localStorage.getItem('markedFlags');
+        if (savedMarkedFlags) {
+          try {
+            const parsed = JSON.parse(savedMarkedFlags);
+            setMarkedFlags(new Set(parsed));
+          } catch (error) {
+            console.error('Error loading marked flags from localStorage:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading red flags:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadRedFlags();
   }, []);
 
   const handleNewCheckup = () => {
     setRedFlags(getBalancedRedFlags());
     setMarkedFlags(new Set());
+    localStorage.removeItem('markedFlags');
   };
 
   const handleFlagToggle = (flagId: string) => {
@@ -27,6 +60,9 @@ export default function Home() {
       newMarked.add(flagId);
     }
     setMarkedFlags(newMarked);
+    
+    // Save to localStorage
+    localStorage.setItem('markedFlags', JSON.stringify(Array.from(newMarked)));
   };
 
   const handleScrollToCheckup = () => {
@@ -35,12 +71,8 @@ export default function Home() {
     });
   };
 
-  if (redFlags.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 border-b-2 border-orange-400"></div>
-      </div>
-    );
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
 
   return (
@@ -107,8 +139,6 @@ export default function Home() {
             </button>
           </div>
         </div>
-
-
       </section>
 
       {/* Interview Checkup Section */}
@@ -116,12 +146,14 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           {/* Main Content */}
           <main className="space-y-8">
-            <InterviewCheckup 
-              redFlags={redFlags}
-              markedFlags={markedFlags}
-              onToggleFlag={handleFlagToggle}
-              onNewCheckup={handleNewCheckup}
-            />
+            <Suspense fallback={<LoadingSpinner />}>
+              <InterviewCheckup 
+                redFlags={redFlags}
+                markedFlags={markedFlags}
+                onToggleFlag={handleFlagToggle}
+                onNewCheckup={handleNewCheckup}
+              />
+            </Suspense>
           </main>
 
           {/* Footer */}

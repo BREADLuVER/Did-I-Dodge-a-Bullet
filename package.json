@@ -7,13 +7,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "node dev-clean.js",
+    "analyze": "ANALYZE=true npm run build",
+    "perf": "npm run build && npm run start"
   },
   "dependencies": {
+    "firebase": "^11.10.0",
+    "lucide-react": "^0.294.0",
     "next": "14.0.4",
     "react": "^18",
-    "react-dom": "^18",
-    "lucide-react": "^0.294.0"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -27,6 +31,6 @@
     "typescript": "^5"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=20.x"
   }
-} 
+}

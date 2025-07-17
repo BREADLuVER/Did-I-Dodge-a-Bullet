@@ -56,12 +56,27 @@ cd did-i-dodge-a-bullet
 npm install
 ```
 
-3. Run the development server:
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory with:
+   ```bash
+   # Site Configuration
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   
+   # Firebase Configuration (see FIREBASE_SETUP.md for details)
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   ```
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Available Scripts
 
@@ -70,6 +85,9 @@ npm run dev
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript type checking
+- `npm run analyze` - Analyze bundle size and dependencies
+- `npm run perf` - Test production build performance
+- `npm run clean` - Clean development environment
 
 ## 🎮 How to Play
 
