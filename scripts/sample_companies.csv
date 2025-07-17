@@ -1,0 +1,116 @@
+name,industry
+Google,Technology
+Apple,Technology
+Microsoft,Technology
+Amazon,Technology
+Meta,Technology
+Netflix,Technology
+Twitter,Technology
+LinkedIn,Technology
+Uber,Technology
+Airbnb,Technology
+Spotify,Technology
+Slack,Technology
+Zoom,Technology
+Salesforce,Technology
+Adobe,Technology
+Oracle,Technology
+Intel,Technology
+AMD,Technology
+NVIDIA,Technology
+IBM,Technology
+Cisco,Technology
+Dell,Technology
+HP,Technology
+Sony,Technology
+Samsung,Technology
+JPMorgan Chase,Financial
+Bank of America,Financial
+Wells Fargo,Financial
+Goldman Sachs,Financial
+Morgan Stanley,Financial
+Citigroup,Financial
+American Express,Financial
+Visa,Financial
+Mastercard,Financial
+PayPal,Financial
+Stripe,Financial
+Walmart,Retail
+Target,Retail
+Costco,Retail
+Home Depot,Retail
+Lowe's,Retail
+Best Buy,Retail
+Starbucks,Retail
+McDonald's,Retail
+Coca-Cola,Retail
+PepsiCo,Retail
+Nike,Retail
+Adidas,Retail
+Disney,Retail
+Netflix,Retail
+Johnson & Johnson,Healthcare
+Pfizer,Healthcare
+Moderna,Healthcare
+Merck,Healthcare
+Gilead Sciences,Healthcare
+Amgen,Healthcare
+UnitedHealth Group,Healthcare
+Anthem,Healthcare
+CVS Health,Healthcare
+Walgreens,Healthcare
+Tesla,Automotive
+Ford,Automotive
+General Motors,Automotive
+Toyota,Automotive
+Honda,Automotive
+BMW,Automotive
+Mercedes-Benz,Automotive
+Volkswagen,Automotive
+Audi,Automotive
+Porsche,Automotive
+McKinsey & Company,Consulting
+Bain & Company,Consulting
+Boston Consulting Group,Consulting
+Deloitte,Consulting
+PwC,Consulting
+EY,Consulting
+KPMG,Consulting
+Accenture,Consulting
+IBM Global Services,Consulting
+Disney,Media
+Warner Bros,Media
+Universal Studios,Media
+Paramount,Media
+Sony Pictures,Media
+HBO,Media
+Hulu,Media
+YouTube,Media
+TikTok,Media
+Instagram,Media
+Facebook,Media
+General Electric,Manufacturing
+3M,Manufacturing
+Boeing,Manufacturing
+Lockheed Martin,Manufacturing
+Raytheon,Manufacturing
+Caterpillar,Manufacturing
+Deere & Company,Manufacturing
+Honeywell,Manufacturing
+United Technologies,Manufacturing
+ExxonMobil,Energy
+Chevron,Energy
+Shell,Energy
+BP,Energy
+ConocoPhillips,Energy
+NextEra Energy,Energy
+Duke Energy,Energy
+Southern Company,Energy
+AT&T,Telecommunications
+Verizon,Telecommunications
+T-Mobile,Telecommunications
+Sprint,Telecommunications
+Comcast,Telecommunications
+Charter Communications,Telecommunications
+CenturyLink,Telecommunications
+Frontier Communications,Telecommunications

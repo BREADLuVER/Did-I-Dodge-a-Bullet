@@ -39,17 +39,17 @@ const getCuratedFlags = (allFlags: RedFlag[]): RedFlag[] => {
   const shuffledMedium = [...medium].sort(() => 0.5 - Math.random());
   const shuffledLight = [...light].sort(() => 0.5 - Math.random());
 
-  // Strategic placement: 4 medium (corners only), 5 light (edges + center)
-  const selectedMedium = shuffledMedium.slice(0, 4);
-  const selectedLight = shuffledLight.slice(0, 5);
+  // Strategic placement: 3 medium (3 corners only), 6 light (edges + center + 1 corner)
+  const selectedMedium = shuffledMedium.slice(0, 3);
+  const selectedLight = shuffledLight.slice(0, 6);
 
   // Create a 3x3 grid with strategic placement
-  // Corners: medium flags (positions 0, 2, 6, 8)
-  // Edges + Center: light flags (positions 1, 3, 4, 5, 7)
+  // 3 corners: medium flags (positions 0, 2, 6)
+  // Edges + Center + 1 corner: light flags (positions 1, 3, 4, 5, 7, 8)
   const grid = [
     [selectedMedium[0], selectedLight[0], selectedMedium[1]], // Top row: medium, light, medium
     [selectedLight[1], selectedLight[2], selectedLight[3]],   // Middle row: light, light, light
-    [selectedMedium[2], selectedLight[4], selectedMedium[3]]  // Bottom row: medium, light, medium
+    [selectedMedium[2], selectedLight[4], selectedLight[5]]   // Bottom row: medium, light, light
   ];
 
   // Flatten the grid and return
@@ -199,7 +199,7 @@ const QuickCheckup = React.memo(({
           </p>
         )}
         <div className="mt-4 text-sm text-gray-500">
-          {markedFlags.size} of 9 selected
+          {curatedFlags.filter(flag => markedFlags.has(flag.id)).length} of 9 selected
         </div>
       </div>
 
@@ -233,7 +233,7 @@ const QuickCheckup = React.memo(({
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
         <button
           onClick={onSubmitResults}
-          disabled={markedFlags.size === 0}
+          disabled={curatedFlags.filter(flag => markedFlags.has(flag.id)).length === 0}
           className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           Get My Results
@@ -256,17 +256,21 @@ const ResultsFeedback = React.memo(({
   markedFlags, 
   redFlags, 
   companyName, 
+  companyId,
   onViewCompanyPage, 
   onExploreMoreFlags, 
   onNewCheckup
 }: {
   markedFlags: Set<string>;
-  redFlags: RedFlag[];
+  redFlags: RedFlag[]; // This is now curatedFlags from the current board
   companyName?: string | null;
+  companyId?: string | null;
   onViewCompanyPage: () => void;
   onExploreMoreFlags: () => void;
   onNewCheckup?: () => void;
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const markedFlagObjects = useMemo(() => 
     redFlags.filter(flag => markedFlags.has(flag.id)), 
     [markedFlags, redFlags]
@@ -283,13 +287,59 @@ const ResultsFeedback = React.memo(({
     return { light, medium };
   }, [markedFlagObjects]);
 
+  // Submit results to backend
+  const submitResults = useCallback(async () => {
+    if (isSubmitting || submissionStatus === 'success') return;
+    
+    setIsSubmitting(true);
+    setSubmissionStatus('idle');
+    
+    try {
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: companyName || null,
+          companyId: companyId || null,
+          markedFlags: Array.from(markedFlags),
+          totalFlags: markedFlagObjects.length,
+          severityBreakdown,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit results');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setSubmissionStatus('success');
+        console.log('✅ Results submitted successfully:', result);
+      } else {
+        throw new Error(result.error || 'Submission failed');
+      }
+    } catch (error) {
+      console.error('❌ Error submitting results:', error);
+      setSubmissionStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, submissionStatus, companyName, companyId, markedFlags, severityBreakdown, markedFlagObjects.length]);
+
+  // Auto-submit results when component mounts
+  useEffect(() => {
+    submitResults();
+  }, [submitResults]);
+
   const handleDownloadResults = useCallback(() => {
     const content = `Interview Red Flag Checkup Results
 
 Company: ${companyName || 'Not specified'}
 Date: ${new Date().toLocaleDateString()}
 
-Total Red Flags Marked: ${markedFlags.size}
+Total Red Flags Marked: ${markedFlagObjects.length}
 
 Severity Breakdown:
 - Light Flags: ${severityBreakdown.light}
@@ -302,7 +352,7 @@ Marked Red Flags:
 ${markedFlagObjects.map(flag => `• ${flag.text} (${flag.severity})`).join('\n')}
 
 ${severityBreakdown.medium > 0 ? '⚠️  You marked medium-severity flags. Consider these carefully.' : ''}
-${markedFlags.size >= 5 ? '🚨  High number of red flags detected. Proceed with caution.' : ''}
+${markedFlagObjects.length >= 5 ? '🚨  High number of red flags detected. Proceed with caution.' : ''}
 
 Trust your instincts. You deserve better.`;
 
@@ -315,7 +365,7 @@ Trust your instincts. You deserve better.`;
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [markedFlags, companyName, severityBreakdown, categoryBreakdown, markedFlagObjects]);
+  }, [markedFlagObjects, companyName, severityBreakdown, categoryBreakdown]);
 
   return (
     <div className="space-y-8">
@@ -327,12 +377,38 @@ Trust your instincts. You deserve better.`;
         <p className="text-xl text-gray-600">
           Here&apos;s what your gut was telling you:
         </p>
+        
+        {/* Submission Status */}
+        {isSubmitting && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+              <span className="text-blue-700">Submitting your results...</span>
+            </div>
+          </div>
+        )}
+        
+        {submissionStatus === 'success' && (
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-green-700">✅ Results submitted successfully!</span>
+            </div>
+          </div>
+        )}
+        
+        {submissionStatus === 'error' && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-red-700">❌ Failed to submit results. Your data is saved locally.</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-          <div className="text-3xl font-bold text-red-500 mb-2">{markedFlags.size}</div>
+          <div className="text-3xl font-bold text-red-500 mb-2">{markedFlagObjects.length}</div>
           <div className="text-gray-600">Red Flags Marked</div>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-lg text-center">
@@ -534,7 +610,13 @@ const DeepDive = React.memo(({
 DeepDive.displayName = 'DeepDive';
 
 // Step Indicator Component
-const StepIndicator = ({ currentStep }: { currentStep: string }) => {
+const StepIndicator = ({ 
+  currentStep, 
+  onStepClick 
+}: { 
+  currentStep: string;
+  onStepClick?: (stepId: string) => void;
+}) => {
   const steps = [
     { id: 'company-input', label: 'Company', icon: '🏢' },
     { id: 'checkup', label: 'Checkup', icon: '🎯' },
@@ -547,18 +629,40 @@ const StepIndicator = ({ currentStep }: { currentStep: string }) => {
 
   const currentIndex = getCurrentStepIndex();
 
+  const handleStepClick = (stepId: string, stepIndex: number) => {
+    // Only allow navigation to completed steps or current step
+    if (stepIndex <= currentIndex && onStepClick) {
+      onStepClick(stepId);
+    }
+  };
+
+  const isStepClickable = (stepIndex: number) => {
+    return stepIndex <= currentIndex && onStepClick;
+  };
+
   return (
     <div className="flex justify-center mb-8">
       <div className="flex items-center space-x-4">
         {steps.map((step, index) => (
           <div key={step.id} className="flex items-center">
-            <div className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold ${
-              index <= currentIndex 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-gray-200 text-gray-500'
-            }`}>
+            <button
+              onClick={() => handleStepClick(step.id, index)}
+              disabled={!isStepClickable(index)}
+              className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold transition-all duration-200 ${
+                index <= currentIndex 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-gray-200 text-gray-500'
+              } ${
+                isStepClickable(index) 
+                  ? 'hover:scale-110 hover:shadow-lg cursor-pointer' 
+                  : 'cursor-default'
+              } ${
+                step.id === currentStep ? 'ring-2 ring-orange-300 ring-offset-2' : ''
+              }`}
+              aria-label={`Go to ${step.label} step`}
+            >
               {step.icon}
-            </div>
+            </button>
             <span className={`ml-2 text-sm font-medium ${
               index <= currentIndex ? 'text-gray-800' : 'text-gray-500'
             }`}>
@@ -695,12 +799,24 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     updateStep('company-input');
   }, [updateStep]);
 
+  // Handle step navigation from the indicator
+  const handleStepNavigation = useCallback((stepId: string) => {
+    // Validate the step transition
+    const currentStepIndex = ['company-input', 'checkup', 'feedback'].indexOf(step);
+    const targetStepIndex = ['company-input', 'checkup', 'feedback'].indexOf(stepId);
+    
+    // Only allow navigation to completed steps or current step
+    if (targetStepIndex <= currentStepIndex) {
+      updateStep(stepId as any);
+    }
+  }, [step, updateStep]);
+
   // Render based on current step
   switch (step) {
     case 'company-input':
       return (
         <div className="max-w-4xl mx-auto px-4 space-y-8">
-          <StepIndicator currentStep="company-input" />
+          <StepIndicator currentStep="company-input" onStepClick={handleStepNavigation} />
           <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">
               Company Selection
@@ -720,7 +836,7 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     case 'checkup':
       return (
         <div className="max-w-4xl mx-auto px-4 space-y-8">
-          <StepIndicator currentStep="checkup" />
+          <StepIndicator currentStep="checkup" onStepClick={handleStepNavigation} />
           <QuickCheckup
             curatedFlags={curatedFlags}
             markedFlags={markedFlags}
@@ -735,11 +851,12 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     case 'feedback':
       return (
         <div className="max-w-4xl mx-auto px-4 space-y-8">
-          <StepIndicator currentStep="feedback" />
+          <StepIndicator currentStep="feedback" onStepClick={handleStepNavigation} />
           <ResultsFeedback
             markedFlags={markedFlags}
-            redFlags={redFlags}
+            redFlags={curatedFlags}
             companyName={selectedCompany?.name}
+            companyId={selectedCompany?.id}
             onViewCompanyPage={handleViewCompanyPage}
             onExploreMoreFlags={handleExploreMoreFlags}
             onNewCheckup={handleNewCheckup}
@@ -748,19 +865,43 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
       );
     case 'deep-dive':
       return (
-        <DeepDive
-          redFlags={redFlags}
-          onBackToResults={handleBackToResults}
-        />
+        <div className="max-w-6xl mx-auto px-4 space-y-8">
+          <div className="flex items-center justify-between">
+            <StepIndicator currentStep="feedback" onStepClick={handleStepNavigation} />
+            <button
+              onClick={handleBackToResults}
+              className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-300 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Results</span>
+            </button>
+          </div>
+          <DeepDive
+            redFlags={redFlags}
+            onBackToResults={handleBackToResults}
+          />
+        </div>
       );
          case 'company':
        return selectedCompany ? (
-         <Suspense fallback={<LoadingSpinner />}>
-           <CompanyPage
-             companyName={selectedCompany.name}
-             onBack={handleBackFromCompany}
-           />
-         </Suspense>
+         <div className="max-w-4xl mx-auto px-4 space-y-8">
+           <div className="flex items-center justify-between">
+             <StepIndicator currentStep="feedback" onStepClick={handleStepNavigation} />
+             <button
+               onClick={handleBackFromCompany}
+               className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-300 transition-colors"
+             >
+               <ArrowLeft className="w-4 h-4" />
+               <span>Back to Results</span>
+             </button>
+           </div>
+           <Suspense fallback={<LoadingSpinner />}>
+             <CompanyPage
+               companyName={selectedCompany.name}
+               onBack={handleBackFromCompany}
+             />
+           </Suspense>
+         </div>
        ) : (
         <div className="text-center py-12">
           <p className="text-gray-500">Company not found.</p>

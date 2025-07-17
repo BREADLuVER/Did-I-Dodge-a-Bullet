@@ -1,0 +1,363 @@
+{
+  "shape": [
+    10000,
+    20
+  ],
+  "columns": [
+    "linkedin_internal_id",
+    "description",
+    "website",
+    "industry",
+    "company_size",
+    "company_size_on_linkedin",
+    "hq",
+    "company_type",
+    "founded_year",
+    "specialities",
+    "locations",
+    "name",
+    "tagline",
+    "universal_name_id",
+    "profile_pic_url",
+    "background_cover_image_url",
+    "search_id",
+    "similar_companies",
+    "updates",
+    "follower_count"
+  ],
+  "dtypes": {
+    "linkedin_internal_id": "float64",
+    "description": "object",
+    "website": "object",
+    "industry": "object",
+    "company_size": "object",
+    "company_size_on_linkedin": "float64",
+    "hq": "object",
+    "company_type": "object",
+    "founded_year": "float64",
+    "specialities": "object",
+    "locations": "object",
+    "name": "object",
+    "tagline": "object",
+    "universal_name_id": "object",
+    "profile_pic_url": "object",
+    "background_cover_image_url": "object",
+    "search_id": "object",
+    "similar_companies": "object",
+    "updates": "object",
+    "follower_count": "float64"
+  },
+  "missing_values": {
+    "linkedin_internal_id": 1,
+    "description": 197,
+    "website": 657,
+    "industry": 826,
+    "company_size": 0,
+    "company_size_on_linkedin": 1749,
+    "hq": 0,
+    "company_type": 1672,
+    "founded_year": 2806,
+    "specialities": 0,
+    "locations": 0,
+    "name": 0,
+    "tagline": 6112,
+    "universal_name_id": 0,
+    "profile_pic_url": 7850,
+    "background_cover_image_url": 7850,
+    "search_id": 1,
+    "similar_companies": 0,
+    "updates": 0,
+    "follower_count": 483
+  },
+  "sample_companies": [
+    {
+      "linkedin_internal_id": 1415096.0,
+      "description": "\u201947 is a sports lifestyle brand founded in Boston, MA, by twin brothers, Arthur and Henry D\u2019Angelo in 1947. The D\u2019Angelos were entrepreneurial pioneers who were quick to see the future of sports licensing by selling pennants and other sports memorabilia on the streets around Fenway Park. Through a combination of hard work, sound instincts, and incredible passion, the brothers grew their business from a single street cart to a premier sports lifestyle brand that uniquely melds sport and style. \r\n\r\n\u201947 is a proud partner of the MLB, NFL, NHL, NBA, MLS, MLL, and over 900 collegiate programs.",
+      "website": "http://www.47brand.com/",
+      "industry": "Apparel & Fashion",
+      "company_size": [
+        201,
+        500
+      ],
+      "company_size_on_linkedin": 272.0,
+      "hq": {
+        "country": "US",
+        "city": "Westwood",
+        "postal_code": "02090",
+        "line_1": "15 SW Park",
+        "is_hq": true,
+        "state": "Massachusetts"
+      },
+      "company_type": "PRIVATELY_HELD",
+      "founded_year": 1947.0,
+      "specialities": [
+        "Sports Licensing",
+        "Headwear",
+        "Apparel",
+        "Lifestyle",
+        "Retail",
+        "Sport"
+      ],
+      "locations": [
+        {
+          "country": "US",
+          "city": "Westwood",
+          "postal_code": "02090",
+          "line_1": "15 SW Park",
+          "is_hq": true,
+          "state": "Massachusetts"
+        }
+      ],
+      "name": "'47",
+      "tagline": "Sports lifestyle brand based out of Boston, MA since 1947.",
+      "universal_name_id": "%2747-brand",
+      "profile_pic_url": "https://s3.us-west-000.backblazeb2.com/proxycurl/company/%252747-brand/profile?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=0004d7f56a0400b0000000001%2F20211201%2Fus-west-000%2Fs3%2Faws4_request&X-Amz-Date=20211201T034629Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3d28801c4e3a166e3538ea8a1fcbb049c523ce7411089b89eae3dd428c24c79f",
+      "background_cover_image_url": "https://s3.us-west-000.backblazeb2.com/proxycurl/company/%252747-brand/cover?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=0004d7f56a0400b0000000001%2F20211201%2Fus-west-000%2Fs3%2Faws4_request&X-Amz-Date=20211201T034629Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=05e2a873b2922466906d2ae0b34b1881c6ff5a4554387feb753a1303b866384f",
+      "search_id": "1415096",
+      "similar_companies": [
+        {
+          "name": "New Era Cap",
+          "link": "https://www.linkedin.com/company/new-era-cap",
+          "industry": "Apparel & Fashion",
+          "location": "Buffalo, New York"
+        },
+        {
+          "name": "Life is Good",
+          "link": "https://www.linkedin.com/company/life-is-good",
+          "industry": "Apparel & Fashion",
+          "location": "Boston, MA"
+        },
+        {
+          "name": "Mitchell & Ness Nostalgia Co.",
+          "link": "https://www.linkedin.com/company/mitchell-&-ness",
+          "industry": "Apparel & Fashion",
+          "location": null
+        },
+        {
+          "name": "Fanatics, Inc.",
+          "link": "https://www.linkedin.com/company/fanatics-inc-",
+          "industry": "Internet",
+          "location": "Jacksonville, FL., ."
+        },
+        {
+          "name": "New Balance",
+          "link": "https://www.linkedin.com/company/new-balance",
+          "industry": "Sporting Goods",
+          "location": "Brighton, MA"
+        },
+        {
+          "name": "Nike",
+          "link": "https://www.linkedin.com/company/nike",
+          "industry": "Sporting Goods",
+          "location": "Beaverton, OR"
+        },
+        {
+          "name": "Converse",
+          "link": "https://www.linkedin.com/company/converse",
+          "industry": "Apparel & Fashion",
+          "location": "Boston, MA"
+        },
+        {
+          "name": "PUMA Group",
+          "link": "https://de.linkedin.com/company/puma",
+          "industry": "Sporting Goods",
+          "location": null
+        },
+        {
+          "name": "adidas",
+          "link": "https://de.linkedin.com/company/adidas",
+          "industry": "Sporting Goods",
+          "location": "Herzogenaurach, Bavaria"
+        },
+        {
+          "name": "Reebok",
+          "link": "https://www.linkedin.com/company/reebok",
+          "industry": "Consumer Goods",
+          "location": "Boston, MA"
+        }
+      ],
+      "updates": [],
+      "follower_count": 8865.0
+    },
+    {
+      "linkedin_internal_id": 6579667.0,
+      "description": "\u00e0 la Sparke is an online 'a la carte' event styling company.\n\nWe say styling, not planning, because we don\u2019t plan\u2026we don\u2019t do budgets or timelines and it's \u00e0 la carte because we won't take control over your entire event, you tell us where you want us and we're there to add sparke where your celebration needs it most, including the second (but almost equally) important piece - what you're wearing! In an industry where event planning services are typically bundled together, we\u2019re separating out each element to give you greater choice at a lower cost.\n\nFor a flat fee (no hourly rates here) you can delegate portions of your event to us, and our stylists will electronically (going green anyone?!) deliver their expertise right to your inbox within 3 business days... and you still get to claim the props for an amazing event! It's your vision, on your budget...",
+      "website": null,
+      "industry": "Design",
+      "company_size": [
+        1,
+        10
+      ],
+      "company_size_on_linkedin": NaN,
+      "hq": {
+        "country": "US",
+        "city": "Atlanta",
+        "postal_code": null,
+        "line_1": "1100 Peachtree St NE Suite 200",
+        "is_hq": true,
+        "state": null
+      },
+      "company_type": "PUBLIC_COMPANY",
+      "founded_year": 2015.0,
+      "specialities": [
+        "Event Styling Wardrobe Styling"
+      ],
+      "locations": [
+        {
+          "country": "US",
+          "city": "Atlanta",
+          "postal_code": null,
+          "line_1": "1100 Peachtree St NE Suite 200",
+          "is_hq": true,
+          "state": null
+        }
+      ],
+      "name": "\u00e0 la Sparke",
+      "tagline": null,
+      "universal_name_id": "%C3%A0-la-sparke",
+      "profile_pic_url": null,
+      "background_cover_image_url": null,
+      "search_id": "6579667",
+      "similar_companies": [],
+      "updates": [],
+      "follower_count": 2.0
+    },
+    {
+      "linkedin_internal_id": 11253763.0,
+      "description": "Mission: \u00c9toile Academy Charter School ensures that every student in grades 5 through 8 has the academic and character foundation necessary to succeed in high school, graduate from college, and pursue ambitious life goals.\n\nVision: \u00c9toile Academy Charter School is founded on the belief that all students can achieve academic success and a college diploma with the right supports. Our educational philosophy is based in seven core principles. These core principles come from the best practices of successful charter schools nationwide. Our core principles are outlined below.\n\nHigh academic expectations for all students inform every school design element.\nSupportive, targeted interventions for all learners are frequent and required.\nData-driven, quality instruction informs all classroom instruction, individual supports, and professional development needs.\nHighly structured routines, infused with joy and encouragement, support achievement.\nIntentional character development allows all students to build school and life success.\nFamily involvement, driven by a clear mission, unites the entire school community.\nMeasurable educational goals hold all adults accountable for student success.",
+      "website": "http://etoileacademy.org/",
+      "industry": "Education Management",
+      "company_size": [
+        1,
+        10
+      ],
+      "company_size_on_linkedin": 15.0,
+      "hq": {
+        "country": "US",
+        "city": "Houston",
+        "postal_code": "77007",
+        "line_1": "230 T.C. Jester Blvd 242",
+        "is_hq": true,
+        "state": null
+      },
+      "company_type": "EDUCATIONAL_INSTITUTION",
+      "founded_year": 2017.0,
+      "specialities": [],
+      "locations": [
+        {
+          "country": "US",
+          "city": "Houston",
+          "postal_code": "77007",
+          "line_1": "230 T.C. Jester Blvd 242",
+          "is_hq": true,
+          "state": null
+        }
+      ],
+      "name": "\u00c9toile Academy Charter School",
+      "tagline": "WE ARE A 5-8 GRADE MIDDLE SCHOOL IN HOUSTON PREPARING STUDENTS TO LEAD AMBITIOUS LIVES.",
+      "universal_name_id": "%C3%A9toile-academy-charter-school",
+      "profile_pic_url": null,
+      "background_cover_image_url": null,
+      "search_id": "11253763",
+      "similar_companies": [],
+      "updates": [],
+      "follower_count": 183.0
+    },
+    {
+      "linkedin_internal_id": 3575650.0,
+      "description": "\u00c4lsa is a great-tasting, twice-daily solution for active adults who want a healthy energy lift without the jolt or crash of the typical energy drink. Its unique blend of clinically tested premium ingredients delivers a steady, measured flow of energy to support the way you live every day, all day. \r\n\r\n\u00c4lsa comes in three refreshing flavors: Dragon Fruit, Pomegranate Blueberry, and Three Citrus.  Just dissolve a single-dose powder packet in 16 oz. of water, blend into a smoothie, sprinkle over yogurt, or enjoy in your favorite recipe. Make it your twice-daily ritual to maximize benefits.\r\n\r\nVegan and gluten-free, \u00c4lsa is naturally sweetened with fructose and stevia extract and naturally flavored for a light, pleasing taste. It contains 19 vitamins, minerals, amino acids, and electrolytes.These are coupled with PURENERGY\u2122 and Cognizin\u00ae Citicoline, two clinically tested sustained energy and cognitive function ingredients. Combined with caffeine from white tea extract and yerba mate extract, they provide the smarter, steady lift you need to get through what you have to do and on to all the things you want to do. Every day.",
+      "website": "http://www.alsaenergy.com",
+      "industry": "Health, Wellness and Fitness",
+      "company_size": [
+        1,
+        10
+      ],
+      "company_size_on_linkedin": NaN,
+      "hq": {
+        "country": "US",
+        "city": "Dana Point",
+        "postal_code": "92629",
+        "line_1": "34145 PACIFIC COAST HWY",
+        "is_hq": true,
+        "state": "California"
+      },
+      "company_type": "PUBLIC_COMPANY",
+      "founded_year": 2014.0,
+      "specialities": [
+        ""
+      ],
+      "locations": [
+        {
+          "country": "US",
+          "city": "Dana Point",
+          "postal_code": "92629",
+          "line_1": "34145 PACIFIC COAST HWY",
+          "is_hq": true,
+          "state": "California"
+        }
+      ],
+      "name": "\u00c4lsa Energy",
+      "tagline": null,
+      "universal_name_id": "%C3%A4lsa-energy",
+      "profile_pic_url": null,
+      "background_cover_image_url": null,
+      "search_id": "3575650",
+      "similar_companies": [
+        {
+          "name": "p1440",
+          "link": "https://www.linkedin.com/company/platform1440",
+          "industry": "Sports",
+          "location": "El Segundo, California"
+        }
+      ],
+      "updates": [],
+      "follower_count": 37.0
+    },
+    {
+      "linkedin_internal_id": 18450472.0,
+      "description": "\u03b4-sidereal is a research syndicate interested in speculative and critical futures.",
+      "website": "http://sidereal.center",
+      "industry": "Design",
+      "company_size": [
+        1,
+        10
+      ],
+      "company_size_on_linkedin": 2.0,
+      "hq": {
+        "country": "US",
+        "city": "Seattle",
+        "postal_code": "98109",
+        "line_1": "400 Broad Street",
+        "is_hq": true,
+        "state": null
+      },
+      "company_type": "NONPROFIT",
+      "founded_year": 2018.0,
+      "specialities": [
+        "Design Research",
+        "Interaction Design",
+        "Speculative Design",
+        "Innovation"
+      ],
+      "locations": [
+        {
+          "country": "US",
+          "city": "Seattle",
+          "postal_code": "98109",
+          "line_1": "400 Broad Street",
+          "is_hq": true,
+          "state": null
+        }
+      ],
+      "name": "\u03b4-sidereal",
+      "tagline": "Cooperating on new visions of the future.",
+      "universal_name_id": "%CE%B4-sidereal",
+      "profile_pic_url": null,
+      "background_cover_image_url": null,
+      "search_id": "18450472",
+      "similar_companies": [],
+      "updates": [],
+      "follower_count": 6.0
+    }
+  ]
+}

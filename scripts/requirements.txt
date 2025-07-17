@@ -1,0 +1,6 @@
+kagglehub
+pandas
+numpy
+firebase-admin
+python-dotenv
+argparse 

@@ -1,0 +1,16 @@
+2025-07-17 17:55:35,587 - INFO - Starting Firebase population from CSV
+2025-07-17 17:55:35,614 - INFO - Firebase initialized successfully
+2025-07-17 17:55:35,615 - INFO - Step 1: Loading and cleaning CSV data
+2025-07-17 17:55:35,615 - INFO - Loading CSV from: sample_companies.csv
+2025-07-17 17:55:35,624 - INFO - Loaded CSV with 115 records
+2025-07-17 17:55:35,624 - INFO - Columns: ['name', 'industry']
+2025-07-17 17:55:35,626 - INFO - Cleaned dataset: 113 companies
+2025-07-17 17:55:35,626 - INFO - Step 2: Populating Firebase
+2025-07-17 17:55:35,627 - INFO - Populating Firebase with 10 companies...
+2025-07-17 17:55:36,094 - INFO - Added batch 1: 10 companies
+2025-07-17 17:55:36,094 - INFO - Successfully added 10 companies to Firebase
+2025-07-17 17:55:36,094 - INFO - Step 3: Verifying population
+2025-07-17 17:55:36,202 - INFO - Verification: Found 5 sample companies
+2025-07-17 17:55:36,202 - INFO - All required fields present in sample
+2025-07-17 17:55:36,202 - INFO - Sample company: Airbnb (aliases: 1)
+2025-07-17 17:55:36,202 - INFO - Firebase population from CSV completed successfully!
