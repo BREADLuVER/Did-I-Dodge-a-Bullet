@@ -43,6 +43,10 @@ You click the ones you experienced. Get a bingo? You might've dodged a bullet.
 - Node.js 20.x or higher
 - npm or yarn
 
+### 🔐 Security Notice
+
+**Important**: If you're setting up this project, please read the [SECURITY_NOTICE.md](SECURITY_NOTICE.md) file for important information about Firebase credentials setup.
+
 ### Installation
 
 1. Clone the repository:

@@ -35,20 +35,28 @@ class CSVFirebasePopulator:
     def __init__(self, service_account_path: str = None):
         """Initialize Firebase connection"""
         try:
-            # Use the service account file in the scripts directory
-            if service_account_path is None:
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-                service_account_path = os.path.join(script_dir, "firebase-service-account.json")
-            
-            # Initialize Firebase Admin SDK
-            if not firebase_admin._apps:
-                cred = credentials.Certificate(service_account_path)
-                firebase_admin.initialize_app(cred)
+            # Try to use environment variables first
+            if os.getenv('FIREBASE_SERVICE_ACCOUNT'):
+                # Use service account from environment variable
+                service_account_info = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT'))
+                if not firebase_admin._apps:
+                    cred = credentials.Certificate(service_account_info)
+                    firebase_admin.initialize_app(cred)
+            elif service_account_path and os.path.exists(service_account_path):
+                # Use service account file if provided and exists
+                if not firebase_admin._apps:
+                    cred = credentials.Certificate(service_account_path)
+                    firebase_admin.initialize_app(cred)
+            else:
+                # Try to use default credentials (for local development)
+                if not firebase_admin._apps:
+                    firebase_admin.initialize_app()
             
             self.db = firestore.client()
             logger.info("Firebase initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Firebase: {e}")
+            logger.error("Please set FIREBASE_SERVICE_ACCOUNT environment variable or provide a valid service account file")
             raise
 
     def load_csv(self, csv_path: str) -> pd.DataFrame:
@@ -243,8 +251,8 @@ def main():
     parser = argparse.ArgumentParser(description='Populate Firebase with companies from CSV')
     parser.add_argument('--csv', required=True, help='Path to CSV file with company names')
     parser.add_argument('--limit', type=int, default=1000, help='Maximum number of companies to add')
-    parser.add_argument('--service-account', default='firebase-service-account.json', 
-                       help='Path to Firebase service account JSON')
+    parser.add_argument('--service-account', default=None, 
+                       help='Path to Firebase service account JSON file (optional, uses environment variable by default)')
     
     args = parser.parse_args()
     

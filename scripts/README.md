@@ -5,8 +5,33 @@ This directory contains scripts to clean and populate your Firebase database wit
 ## 📋 Prerequisites
 
 1. **Python 3.7+** installed
-2. **Firebase service account key** (`firebase-service-account.json`) in this directory
+2. **Firebase service account credentials** (see setup below)
 3. **Kaggle API credentials** (optional, for downloading datasets)
+
+## 🔐 Firebase Setup
+
+### Option 1: Environment Variable (Recommended)
+Set the `FIREBASE_SERVICE_ACCOUNT` environment variable with your service account JSON:
+
+```bash
+# On Windows (PowerShell)
+$env:FIREBASE_SERVICE_ACCOUNT='{"type":"service_account","project_id":"your-project",...}'
+
+# On Windows (Command Prompt)
+set FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"your-project",...}
+
+# On Linux/Mac
+export FIREBASE_SERVICE_ACCOUNT='{"type":"service_account","project_id":"your-project",...}'
+```
+
+### Option 2: Service Account File (Local Development)
+Place your `firebase-service-account.json` file in this directory (NOT committed to git).
+
+### Option 3: Default Credentials (Local Development)
+Use Firebase CLI authentication:
+```bash
+firebase login
+```
 
 ## 🛠 Installation
 
@@ -51,7 +76,7 @@ python populate_from_csv.py --csv companies.csv --limit 1000
 **Arguments:**
 - `--csv`: Path to CSV file (required)
 - `--limit`: Maximum companies to add (default: 1000)
-- `--service-account`: Path to Firebase service account (default: firebase-service-account.json)
+- `--service-account`: Path to Firebase service account file (optional, uses environment variable by default)
 
 ### 3. `generate_sample_companies.py`
 **Utility script** to create a sample CSV with popular companies for testing.
@@ -154,7 +179,7 @@ All scripts create detailed logs:
 ## ⚠️ Important Notes
 
 1. **Backup First**: These scripts will delete existing data. Backup your database first!
-2. **Service Account**: Ensure your Firebase service account has write permissions
+2. **Service Account**: Ensure your Firebase service account has write permissions and is properly configured
 3. **Rate Limits**: Firebase has rate limits. Large datasets may take time to process
 4. **Kaggle API**: If using Kaggle dataset, you may need to authenticate with Kaggle
 
@@ -166,7 +191,7 @@ All scripts create detailed logs:
 ```
 ❌ Failed to initialize Firebase: [Errno 2] No such file or directory: 'firebase-service-account.json'
 ```
-**Solution:** Ensure `firebase-service-account.json` is in the scripts directory
+**Solution:** Set the `FIREBASE_SERVICE_ACCOUNT` environment variable or ensure `firebase-service-account.json` is in the scripts directory
 
 **Kaggle Download Error:**
 ```

@@ -13,6 +13,7 @@
     "perf": "npm run build && npm run start"
   },
   "dependencies": {
+    "bfg": "^0.3.0",
     "firebase": "^11.10.0",
     "lucide-react": "^0.294.0",
     "next": "14.0.4",

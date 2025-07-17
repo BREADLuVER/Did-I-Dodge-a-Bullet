@@ -9,21 +9,23 @@ def import_companies_to_firebase():
     
     print("Setting up Firebase connection...")
     
-    # Method 1: Use service account key file
-    # You'll need to download this from Firebase Console
-    # Go to Project Settings → Service Accounts → Generate New Private Key
-    service_account_path = "firebase-service-account.json"
-    
-    if os.path.exists(service_account_path):
-        cred = credentials.Certificate(service_account_path)
+    # Try to use environment variables first
+    if os.getenv('FIREBASE_SERVICE_ACCOUNT'):
+        # Use service account from environment variable
+        service_account_info = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT'))
+        cred = credentials.Certificate(service_account_info)
+        firebase_admin.initialize_app(cred)
+        print("✓ Connected using environment variable")
+    elif os.path.exists("firebase-service-account.json"):
+        # Use service account file if it exists
+        cred = credentials.Certificate("firebase-service-account.json")
         firebase_admin.initialize_app(cred)
         print("✓ Connected using service account file")
     else:
-        print("⚠ Service account file not found. Please:")
-        print("1. Go to Firebase Console → Project Settings → Service Accounts")
-        print("2. Click 'Generate New Private Key'")
-        print("3. Save as 'firebase-service-account.json' in this folder")
-        print("4. Run this script again")
+        print("⚠ Firebase credentials not found. Please:")
+        print("1. Set FIREBASE_SERVICE_ACCOUNT environment variable, OR")
+        print("2. Place firebase-service-account.json in this folder")
+        print("3. Run this script again")
         return
     
     # Initialize Firestore
