@@ -12,14 +12,14 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-// Firebase configuration with better error handling
+// Firebase configuration - will be validated before use
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Singleton pattern to prevent multiple initializations
@@ -38,6 +38,7 @@ export const validateFirebaseConfig = (): boolean => {
     'NEXT_PUBLIC_FIREBASE_APP_ID',
   ];
 
+  // Check if any values are missing or invalid
   const missingKeys = requiredKeys.filter(key => {
     const value = process.env[key];
     return !value || value === 'your_api_key_here' || value === '';
@@ -54,9 +55,18 @@ export const validateFirebaseConfig = (): boolean => {
       hasMessagingSenderId: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
       hasAppId: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     });
+    console.error('Debug: Actual values (first 10 chars):', {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY?.substring(0, 10) + '...',
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.substring(0, 10) + '...',
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.substring(0, 10) + '...',
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID?.substring(0, 10) + '...',
+    });
     return false;
   }
 
+  console.log('✅ Firebase configuration validation passed');
   return true;
 };
 
