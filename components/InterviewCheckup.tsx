@@ -682,9 +682,9 @@ const StepIndicator = ({
 
 // Main InterviewCheckup Component
 export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewCheckup }: InterviewCheckupProps) => {
-  const [step, setStep] = useState<'company-input' | 'checkup' | 'feedback' | 'deep-dive' | 'company'>('company-input');
+  const [step, setStep] = useState<'company-input' | 'checkup' | 'feedback' | 'deep-dive' | 'company'>('checkup');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [showCompanyInput, setShowCompanyInput] = useState(true);
+  const [showCompanyInput, setShowCompanyInput] = useState(false);
   const [hasSavedSession, setHasSavedSession] = useState(false);
 
   // Memoize curated flags to prevent unnecessary recalculations
@@ -724,14 +724,12 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     }
   }, []);
 
-  // Load persisted state on mount - but don't auto-restore to avoid skipping hero
+  // Load persisted state on mount
   useEffect(() => {
     try {
       const savedStep = localStorage.getItem('checkupStep');
       const savedCompany = localStorage.getItem('selectedCompany');
       const savedShowInput = localStorage.getItem('showCompanyInput');
-
-
 
       // Validate and clean up any invalid step data
       if (savedStep) {
@@ -740,7 +738,8 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
           const validSteps = ['company-input', 'checkup', 'feedback', 'deep-dive', 'company'];
           if (!validSteps.includes(parsedStep)) {
             localStorage.removeItem('checkupStep');
-          } else if (parsedStep !== 'company-input') {
+          } else if (parsedStep !== 'checkup') {
+            // If there's a saved step that's not the default, show session restore option
             setHasSavedSession(true);
           }
         } catch (error) {
@@ -748,8 +747,7 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
         }
       }
 
-      // Only restore company and showInput state, not the step
-      // This prevents auto-jumping to checkup section
+      // Restore company and showInput state
       if (savedCompany) {
         setSelectedCompany(JSON.parse(savedCompany));
       }
@@ -856,6 +854,27 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
         <div className="max-w-4xl mx-auto px-4 space-y-8">
           <StepIndicator currentStep="company-input" onStepClick={handleStepNavigation} />
           
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Company Selection
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
+              Let&apos;s start by entering the company name for your interview checkup.
+            </p>
+          </div>
+          <Suspense fallback={<LoadingSpinner />}>
+            <CompanyInput
+              onCompanySelect={handleCompanySubmit}
+              onSkip={handleSkipCompany}
+            />
+          </Suspense>
+        </div>
+      );
+    case 'checkup':
+      return (
+        <div className="max-w-4xl mx-auto px-4 space-y-8">
+          <StepIndicator currentStep="checkup" onStepClick={handleStepNavigation} />
+          
           {/* Saved Session Notification */}
           {hasSavedSession && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -885,26 +904,6 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
             </div>
           )}
           
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Company Selection
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
-              Let&apos;s start by entering the company name for your interview checkup.
-            </p>
-          </div>
-          <Suspense fallback={<LoadingSpinner />}>
-            <CompanyInput
-              onCompanySelect={handleCompanySubmit}
-              onSkip={handleSkipCompany}
-            />
-          </Suspense>
-        </div>
-      );
-    case 'checkup':
-      return (
-        <div className="max-w-4xl mx-auto px-4 space-y-8">
-          <StepIndicator currentStep="checkup" onStepClick={handleStepNavigation} />
           <QuickCheckup
             curatedFlags={curatedFlags}
             markedFlags={markedFlags}
@@ -982,24 +981,20 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
         </div>
       );
     default:
-      // If we somehow get an invalid step, reset to company-input
-      setStep('company-input');
+      // If we somehow get an invalid step, reset to checkup
+      setStep('checkup');
       return (
         <div className="max-w-4xl mx-auto px-4 space-y-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Company Selection
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
-              Let&apos;s start by entering the company name for your interview checkup.
-            </p>
-          </div>
-          <Suspense fallback={<LoadingSpinner />}>
-            <CompanyInput
-              onCompanySelect={handleCompanySubmit}
-              onSkip={handleSkipCompany}
-            />
-          </Suspense>
+          <StepIndicator currentStep="checkup" onStepClick={handleStepNavigation} />
+          <QuickCheckup
+            curatedFlags={curatedFlags}
+            markedFlags={markedFlags}
+            onToggleFlag={onToggleFlag}
+            onSubmitResults={handleSubmitResults}
+            onRerollBoard={handleRerollBoard}
+            onBack={handleBackToCompanyInput}
+            companyName={selectedCompany?.name}
+          />
         </div>
       );
   }
