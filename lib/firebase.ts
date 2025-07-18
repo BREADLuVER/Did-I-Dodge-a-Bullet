@@ -12,14 +12,14 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-// Firebase configuration
+// Firebase configuration with better error handling
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
 };
 
 // Singleton pattern to prevent multiple initializations
@@ -27,7 +27,7 @@ let firebaseApp: FirebaseApp | null = null;
 let firestoreDB: Firestore | null = null;
 let isInitialized = false;
 
-// Validate configuration
+// Validate configuration with better debugging
 export const validateFirebaseConfig = (): boolean => {
   const requiredKeys = [
     'NEXT_PUBLIC_FIREBASE_API_KEY',
@@ -45,6 +45,15 @@ export const validateFirebaseConfig = (): boolean => {
   
   if (missingKeys.length > 0) {
     console.error('Missing Firebase configuration keys:', missingKeys);
+    console.error('Environment check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      hasStorageBucket: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      hasMessagingSenderId: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      hasAppId: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    });
     return false;
   }
 
@@ -63,10 +72,13 @@ const ensureFirebaseInitialized = () => {
         isInitialized = true;
         console.log('✅ Firebase initialized successfully');
       } else {
-        console.warn('⚠️ Firebase configuration incomplete');
+        console.warn('⚠️ Firebase configuration incomplete - running in offline mode');
+        // Set a flag to indicate Firebase is not available
+        (window as any).__FIREBASE_OFFLINE_MODE__ = true;
       }
     } catch (error) {
       console.error('❌ Firebase initialization failed:', error);
+      (window as any).__FIREBASE_OFFLINE_MODE__ = true;
     }
   }
 };
@@ -144,6 +156,21 @@ export interface CompanyInsights {
 
 // Database functions
 export const submitInterviewCheckup = async (data: Omit<InterviewSubmission, 'timestamp'>) => {
+  // Check if we're in offline mode
+  if (typeof window !== 'undefined' && (window as any).__FIREBASE_OFFLINE_MODE__) {
+    console.log('📱 Running in offline mode - data saved locally only');
+    // Save to localStorage as fallback
+    const offlineData = {
+      ...data,
+      timestamp: new Date().toISOString(),
+      offline: true
+    };
+    const offlineSubmissions = JSON.parse(localStorage.getItem('offline_submissions') || '[]');
+    offlineSubmissions.push(offlineData);
+    localStorage.setItem('offline_submissions', JSON.stringify(offlineSubmissions));
+    return 'offline_' + Date.now();
+  }
+
   if (!firestoreDB) {
     throw new Error('Firebase not initialized. Please set up your Firebase configuration.');
   }
@@ -220,6 +247,12 @@ export const updateCompanyInsights = async (companyName: string, submissionData:
 };
 
 export const getCompanyInsights = async (companyName: string): Promise<CompanyInsights | null> => {
+  // Check if we're in offline mode
+  if (typeof window !== 'undefined' && (window as any).__FIREBASE_OFFLINE_MODE__) {
+    console.log('📱 Running in offline mode - no company insights available');
+    return null;
+  }
+
   if (!firestoreDB) {
     console.warn('Firebase not initialized. Cannot get company insights.');
     return null;

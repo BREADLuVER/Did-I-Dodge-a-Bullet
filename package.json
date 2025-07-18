@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "clean": "node dev-clean.js",
     "analyze": "ANALYZE=true npm run build",
-    "perf": "npm run build && npm run start"
+    "perf": "npm run build && npm run start",
+    "check-env": "node scripts/check-env.js"
   },
   "dependencies": {
     "bfg": "^0.3.0",
