@@ -25,6 +25,51 @@ const firebaseConfig = {
 // Singleton pattern to prevent multiple initializations
 let firebaseApp: FirebaseApp | null = null;
 let firestoreDB: Firestore | null = null;
+let isInitialized = false;
+
+// Validate configuration
+export const validateFirebaseConfig = (): boolean => {
+  const requiredKeys = [
+    'NEXT_PUBLIC_FIREBASE_API_KEY',
+    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+    'NEXT_PUBLIC_FIREBASE_APP_ID',
+  ];
+
+  const missingKeys = requiredKeys.filter(key => {
+    const value = process.env[key];
+    return !value || value === 'your_api_key_here' || value === '';
+  });
+  
+  if (missingKeys.length > 0) {
+    console.error('Missing Firebase configuration keys:', missingKeys);
+    return false;
+  }
+
+  return true;
+};
+
+// Initialize Firebase lazily when first needed
+const ensureFirebaseInitialized = () => {
+  if (isInitialized) return;
+  
+  if (typeof window !== 'undefined') {
+    // Only initialize on client side
+    try {
+      if (validateFirebaseConfig()) {
+        initializeFirebase();
+        isInitialized = true;
+        console.log('✅ Firebase initialized successfully');
+      } else {
+        console.warn('⚠️ Firebase configuration incomplete');
+      }
+    } catch (error) {
+      console.error('❌ Firebase initialization failed:', error);
+    }
+  }
+};
 
 // Initialize Firebase only once
 export const initializeFirebase = (): { app: FirebaseApp; db: Firestore } => {
@@ -47,6 +92,7 @@ export const initializeFirebase = (): { app: FirebaseApp; db: Firestore } => {
 
 // Get Firebase instances
 export const getFirebaseApp = (): FirebaseApp => {
+  ensureFirebaseInitialized();
   if (!firebaseApp) {
     const { app } = initializeFirebase();
     return app;
@@ -55,6 +101,7 @@ export const getFirebaseApp = (): FirebaseApp => {
 };
 
 export const getFirestoreDB = (): Firestore => {
+  ensureFirebaseInitialized();
   if (!firestoreDB) {
     const { db } = initializeFirebase();
     return db;
@@ -62,45 +109,11 @@ export const getFirestoreDB = (): Firestore => {
   return firestoreDB;
 };
 
-// Export for backward compatibility
+// Export for backward compatibility (lazy initialization)
 export const db = getFirestoreDB();
 export const app = getFirebaseApp();
 
-// Validate configuration
-export const validateFirebaseConfig = (): boolean => {
-  const requiredKeys = [
-    'NEXT_PUBLIC_FIREBASE_API_KEY',
-    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    'NEXT_PUBLIC_FIREBASE_APP_ID',
-  ];
 
-  const missingKeys = requiredKeys.filter(key => !process.env[key]);
-  
-  if (missingKeys.length > 0) {
-    console.error('Missing Firebase configuration keys:', missingKeys);
-    return false;
-  }
-
-  return true;
-};
-
-// Initialize on module load
-if (typeof window !== 'undefined') {
-  // Only initialize on client side
-  try {
-    if (validateFirebaseConfig()) {
-      initializeFirebase();
-      console.log('✅ Firebase initialized successfully');
-    } else {
-      console.warn('⚠️ Firebase configuration incomplete');
-    }
-  } catch (error) {
-    console.error('❌ Firebase initialization failed:', error);
-  }
-}
 
 // Database types
 export interface InterviewSubmission {

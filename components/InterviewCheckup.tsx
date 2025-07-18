@@ -731,9 +731,21 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
       const savedCompany = localStorage.getItem('selectedCompany');
       const savedShowInput = localStorage.getItem('showCompanyInput');
 
-      // Check if there's a saved session
-      if (savedStep && savedStep !== 'company-input') {
-        setHasSavedSession(true);
+
+
+      // Validate and clean up any invalid step data
+      if (savedStep) {
+        try {
+          const parsedStep = JSON.parse(savedStep);
+          const validSteps = ['company-input', 'checkup', 'feedback', 'deep-dive', 'company'];
+          if (!validSteps.includes(parsedStep)) {
+            localStorage.removeItem('checkupStep');
+          } else if (parsedStep !== 'company-input') {
+            setHasSavedSession(true);
+          }
+        } catch (error) {
+          localStorage.removeItem('checkupStep');
+        }
       }
 
       // Only restore company and showInput state, not the step
@@ -808,8 +820,17 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     try {
       const savedStep = localStorage.getItem('checkupStep');
       if (savedStep) {
-        setStep(JSON.parse(savedStep));
-        setHasSavedSession(false);
+        const parsedStep = JSON.parse(savedStep);
+        // Validate that the step is a valid value
+        const validSteps = ['company-input', 'checkup', 'feedback', 'deep-dive', 'company'];
+        if (validSteps.includes(parsedStep)) {
+          setStep(parsedStep);
+          setHasSavedSession(false);
+        } else {
+          // Clear the invalid step
+          localStorage.removeItem('checkupStep');
+          setHasSavedSession(false);
+        }
       }
     } catch (error) {
       console.error('Error restoring session:', error);
@@ -961,16 +982,25 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
         </div>
       );
     default:
+      // If we somehow get an invalid step, reset to company-input
+      setStep('company-input');
       return (
-        <QuickCheckup
-          curatedFlags={curatedFlags}
-          markedFlags={markedFlags}
-          onToggleFlag={onToggleFlag}
-          onSubmitResults={handleSubmitResults}
-          onRerollBoard={handleRerollBoard}
-          onBack={handleBackToCompanyInput}
-          companyName={selectedCompany?.name}
-        />
+        <div className="max-w-4xl mx-auto px-4 space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Company Selection
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
+              Let&apos;s start by entering the company name for your interview checkup.
+            </p>
+          </div>
+          <Suspense fallback={<LoadingSpinner />}>
+            <CompanyInput
+              onCompanySelect={handleCompanySubmit}
+              onSkip={handleSkipCompany}
+            />
+          </Suspense>
+        </div>
       );
   }
 }; 
