@@ -150,14 +150,14 @@ const CompanyInput = ({ onCompanySelect, onSkip, className = '' }: CompanyInputP
   return (
     <div className={`relative ${className}`}>
       <div className="space-y-4">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="text-center px-2 sm:px-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Enter Company Name
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
             Get company-specific insights and compare your experience with others
           </p>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
             Select from suggestions or type your own company name
           </p>
         </div>
@@ -171,7 +171,7 @@ const CompanyInput = ({ onCompanySelect, onSkip, className = '' }: CompanyInputP
             onKeyDown={handleKeyDown}
             onFocus={() => setShowSuggestions(true)}
             placeholder="Start typing company name..."
-            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 text-base sm:text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
             autoComplete="off"
             autoFocus
           />
@@ -232,21 +232,21 @@ const CompanyInput = ({ onCompanySelect, onSkip, className = '' }: CompanyInputP
           <button
             onClick={handleSubmit}
             disabled={!inputValue.trim()}
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             Use This Name
           </button>
           
           <button
             onClick={onSkip}
-            className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+            className="flex-1 bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors text-sm sm:text-base"
           >
             Skip for Anonymous
           </button>
         </div>
 
         {/* Benefits */}
-        <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
+        <div className="bg-blue-50 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-blue-800">
           <h3 className="font-semibold mb-2">Why enter a company name?</h3>
           <ul className="space-y-1">
             <li>• Compare your experience with others at the same company</li>

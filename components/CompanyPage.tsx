@@ -109,68 +109,69 @@ const CompanyPage = ({ companyName, onBack }: CompanyPageProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
       <button
         onClick={onBack}
-        className="mb-6 flex items-center text-blue-600 hover:underline"
+        className="mb-4 sm:mb-6 flex items-center text-blue-600 hover:underline"
       >
-        <ArrowLeft className="w-5 h-5 mr-2" /> Back to Results
+        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> 
+        <span className="text-sm sm:text-base">Back to Results</span>
       </button>
       
-      <div className="bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center">
-          <Building2 className="w-7 h-7 text-orange-500 mr-3" />
+      <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-900 flex items-center">
+          <Building2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-orange-500 mr-2 sm:mr-3" />
           {companyName}
         </h2>
         
         {loading ? (
           <div className="text-gray-500 mt-4">Loading insights...</div>
         ) : insights ? (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-blue-50 rounded-lg p-4 text-center">
-                <BarChart3 className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-blue-50 rounded-lg p-3 sm:p-4 text-center">
+                <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 mx-auto mb-2" />
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
                   {insights.submissionCount || 0}
                 </div>
-                <div className="text-sm text-blue-700">Checkups Submitted</div>
+                <div className="text-xs sm:text-sm text-blue-700">Checkups Submitted</div>
               </div>
               
-              <div className="bg-purple-50 rounded-lg p-4 text-center">
-                <TrendingUp className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-purple-600">
+              <div className="bg-purple-50 rounded-lg p-3 sm:p-4 text-center">
+                <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 mx-auto mb-2" />
+                <div className="text-xl sm:text-2xl font-bold text-purple-600">
                   {insights.averageFlagCount?.toFixed(1) || '0.0'}
                 </div>
-                <div className="text-sm text-purple-700">Avg Flags per Checkup</div>
+                <div className="text-xs sm:text-sm text-purple-700">Avg Flags per Checkup</div>
               </div>
               
-              <div className="bg-red-50 rounded-lg p-4 text-center">
-                <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-red-600">
+              <div className="bg-red-50 rounded-lg p-3 sm:p-4 text-center sm:col-span-2 md:col-span-1">
+                <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 mx-auto mb-2" />
+                <div className="text-xl sm:text-2xl font-bold text-red-600">
                   {insights.severityTrends?.medium || 0}
                 </div>
-                <div className="text-sm text-red-700">Medium Severity Flags</div>
+                <div className="text-xs sm:text-sm text-red-700">Medium Severity Flags</div>
               </div>
             </div>
 
             {/* Top 3 Most Common Flags */}
             {topFlags.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <Users className="w-5 h-5 text-green-500 mr-2" />
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-2" />
                   Most Common Red Flags
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   {topFlags.map((flag, index) => (
-                    <div key={flag?.id} className={`border-2 rounded-lg p-4 ${getSeverityColor(flag?.severity || 'light')}`}>
-                      <div className="flex items-start justify-between mb-3">
+                    <div key={flag?.id} className={`border-2 rounded-lg p-3 sm:p-4 ${getSeverityColor(flag?.severity || 'light')}`}>
+                      <div className="flex items-start justify-between mb-2 sm:mb-3">
                         <span className="text-xs font-semibold text-gray-600 bg-white px-2 py-1 rounded">
                           #{index + 1} • {flag?.count} time{flag?.count !== 1 ? 's' : ''}
                         </span>
                         {getSeverityIcon(flag?.severity || 'light')}
                       </div>
-                      <p className="text-gray-800 font-medium text-sm mb-2">
+                      <p className="text-gray-800 font-medium text-xs sm:text-sm mb-2">
                         {flag?.text}
                       </p>
                       <div className="flex items-center justify-between text-xs text-gray-600">
@@ -184,18 +185,18 @@ const CompanyPage = ({ companyName, onBack }: CompanyPageProps) => {
             )}
 
             {/* Severity Breakdown */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Severity Breakdown</h3>
-              <div className="flex items-center space-x-6">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">Severity Breakdown</h3>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 bg-yellow-500 rounded-full"></div>
+                  <span className="text-xs sm:text-sm text-gray-700">
                     Light: {insights.severityTrends?.light || 0}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 bg-orange-500 rounded-full"></div>
+                  <span className="text-xs sm:text-sm text-gray-700">
                     Medium: {insights.severityTrends?.medium || 0}
                   </span>
                 </div>
@@ -203,8 +204,8 @@ const CompanyPage = ({ companyName, onBack }: CompanyPageProps) => {
             </div>
 
             {/* Last Updated */}
-            <div className="flex items-center space-x-3 text-sm text-gray-600">
-              <Eye className="w-4 h-4" />
+            <div className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-gray-600">
+              <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>
                 Last updated: {formatLastUpdated(insights.lastSubmission)}
               </span>

@@ -131,7 +131,7 @@ const RedFlagCard = React.memo(({ redFlag, isMarked, onToggle }: RedFlagCardProp
 
   return (
     <div
-      className={`p-4 rounded-lg border-2 text-sm font-medium text-center flex flex-col items-center justify-center min-h-[120px] transition-all duration-200 ${
+      className={`p-2 sm:p-3 md:p-4 rounded-lg border-2 text-xs sm:text-sm font-medium text-center flex flex-col items-center justify-center min-h-[80px] sm:min-h-[100px] md:min-h-[120px] transition-all duration-200 ${
         isMarked
           ? 'border-red-500 bg-red-500 text-white shadow-lg'
           : `${getSeverityColor} hover:border-red-500 hover:bg-gray-50 cursor-pointer`
@@ -143,7 +143,7 @@ const RedFlagCard = React.memo(({ redFlag, isMarked, onToggle }: RedFlagCardProp
       aria-label={`${isMarked ? 'Unmark' : 'Mark'} red flag: ${redFlag.text}`}
       aria-pressed={isMarked}
     >
-      <p className="leading-tight">{redFlag.text}</p>
+      <p className="leading-tight text-xs sm:text-sm">{redFlag.text}</p>
     </div>
   );
 });
@@ -172,44 +172,44 @@ const QuickCheckup = React.memo(({
   const bingoCount = bingoLines.length;
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-6 sm:space-y-8 w-full">
       {/* Back Button */}
-      <div className="flex justify-start">
+      <div className="flex justify-start px-2 sm:px-0">
         <button
           onClick={onBack}
           className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          <span className="text-sm font-medium">Change Company</span>
+          <span className="text-xs sm:text-sm font-medium">Change Company</span>
         </button>
       </div>
 
       {/* Header */}
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">
+      <div className="text-center px-2 sm:px-0">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">
           Quick Checkup
         </h2>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-4">
+        <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-3 sm:mb-4">
           Just finished an interview?<br />
           Mark the red flags that stood out to you.
         </p>
         {companyName && (
-          <p className="text-sm text-orange-600">
+          <p className="text-xs sm:text-sm text-orange-600">
             Analyzing patterns for: <span className="font-semibold">{companyName}</span>
           </p>
         )}
-        <div className="mt-4 text-sm text-gray-500">
+        <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
           {curatedFlags.filter(flag => markedFlags.has(flag.id)).length} of 9 selected
         </div>
       </div>
 
       {/* Bingo Notification */}
       {bingoCount > 0 && (
-        <div className="bg-red-100 border-2 border-red-500 rounded-xl p-6 text-center">
-          <div className="text-2xl font-bold text-red-700 mb-2">
+        <div className="bg-red-100 border-2 border-red-500 rounded-xl p-4 sm:p-6 text-center mx-2 sm:mx-0">
+          <div className="text-xl sm:text-2xl font-bold text-red-700 mb-2">
             🚨 BINGO! 🚨
           </div>
-          <div className="text-red-600">
+          <div className="text-sm sm:text-base text-red-600">
             You&apos;ve marked {bingoCount} complete line{bingoCount > 1 ? 's' : ''} of red flags.
             <br />
             <strong>This is a major warning sign!</strong>
@@ -218,7 +218,7 @@ const QuickCheckup = React.memo(({
       )}
 
       {/* Bingo Grid */}
-      <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-2xl mx-auto px-2 sm:px-0">
         {curatedFlags.map((flag, index) => (
           <RedFlagCard
             key={flag.id}
@@ -230,17 +230,17 @@ const QuickCheckup = React.memo(({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2 sm:px-0">
         <button
           onClick={onSubmitResults}
           disabled={curatedFlags.filter(flag => markedFlags.has(flag.id)).length === 0}
-          className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="w-full sm:w-auto bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 sm:px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base"
         >
           Get My Results
         </button>
         <button
           onClick={onRerollBoard}
-          className="bg-gray-200 text-gray-700 px-6 py-3 rounded-full font-semibold hover:bg-gray-300 transition-all duration-300"
+          className="w-full sm:w-auto bg-gray-200 text-gray-700 px-6 py-3 rounded-full font-semibold hover:bg-gray-300 transition-all duration-300 text-sm sm:text-base"
         >
           New Board
         </button>
@@ -641,7 +641,7 @@ const StepIndicator = ({
   };
 
   return (
-    <div className="flex justify-center mb-8">
+    <div className="hidden sm:flex justify-center mb-8">
       <div className="flex items-center space-x-4">
         {steps.map((step, index) => (
           <div key={step.id} className="flex items-center">
@@ -719,6 +719,7 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
       localStorage.removeItem('checkupStep');
       localStorage.removeItem('selectedCompany');
       localStorage.removeItem('showCompanyInput');
+      localStorage.removeItem('sessionDismissed');
     } catch (error) {
       console.error('Error clearing persisted state:', error);
     }
@@ -730,6 +731,12 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
       const savedStep = localStorage.getItem('checkupStep');
       const savedCompany = localStorage.getItem('selectedCompany');
       const savedShowInput = localStorage.getItem('showCompanyInput');
+      const sessionDismissed = localStorage.getItem('sessionDismissed');
+
+      // Don't show session restore if user has dismissed it
+      if (sessionDismissed === 'true') {
+        return;
+      }
 
       // Validate and clean up any invalid step data
       if (savedStep) {
@@ -738,9 +745,18 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
           const validSteps = ['company-input', 'checkup', 'feedback', 'deep-dive', 'company'];
           if (!validSteps.includes(parsedStep)) {
             localStorage.removeItem('checkupStep');
-          } else if (parsedStep !== 'checkup') {
-            // If there's a saved step that's not the default, show session restore option
-            setHasSavedSession(true);
+          } else {
+            // Restore the saved step immediately
+            setStep(parsedStep);
+            
+            // Only show session restore notification if there are marked flags to restore
+            // and we're not on the company-input step (which doesn't need session restore)
+            if (parsedStep !== 'company-input') {
+              const savedMarkedFlags = localStorage.getItem('markedFlags');
+              if (savedMarkedFlags && markedFlags.size === 0) {
+                setHasSavedSession(true);
+              }
+            }
           }
         } catch (error) {
           localStorage.removeItem('checkupStep');
@@ -757,7 +773,7 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     } catch (error) {
       console.error('Error loading persisted state:', error);
     }
-  }, []);
+  }, [markedFlags.size]);
 
   const handleCompanySubmit = useCallback((company: Company | null) => {
     updateSelectedCompany(company);
@@ -835,6 +851,29 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
     }
   }, []);
 
+  const handleDismissSession = useCallback(() => {
+    setHasSavedSession(false);
+    
+    // Get the current step before clearing
+    const currentStep = localStorage.getItem('checkupStep');
+    
+    // Clear the saved session data
+    clearPersistedState();
+    // Also clear marked flags to prevent future session detection
+    localStorage.removeItem('markedFlags');
+    // Set a flag to prevent session restore from showing again
+    localStorage.setItem('sessionDismissed', 'true');
+    
+    // If user was on company-input step, keep them there
+    // Otherwise, reset to checkup step
+    if (currentStep === '"company-input"') {
+      setStep('company-input');
+      setShowCompanyInput(true);
+    } else {
+      setStep('checkup');
+    }
+  }, [clearPersistedState]);
+
   // Handle step navigation from the indicator
   const handleStepNavigation = useCallback((stepId: string) => {
     // Validate the step transition
@@ -894,7 +933,7 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
                     Continue
                   </button>
                   <button
-                    onClick={() => setHasSavedSession(false)}
+                    onClick={handleDismissSession}
                     className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
                   >
                     Dismiss

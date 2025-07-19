@@ -78,7 +78,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200">
+      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200 px-4 sm:px-6">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-20 w-32 h-32 bg-orange-400 rounded-full blur-3xl"></div>
@@ -87,44 +87,44 @@ export default function Home() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
           {/* Icon Row */}
-          <div className="flex items-center justify-center space-x-4 mb-8">
-            <div className="p-3 bg-orange-100 rounded-full">
-              <Target className="w-8 h-8 text-orange-500" />
+          <div className="flex items-center justify-center space-x-2 sm:space-x-4 mb-6 sm:mb-8">
+            <div className="p-2 sm:p-3 bg-orange-100 rounded-full">
+              <Target className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500" />
             </div>
-            <div className="p-3 bg-red-100 rounded-full">
-              <AlertTriangle className="w-8 h-8 text-red-500" />
+            <div className="p-2 sm:p-3 bg-red-100 rounded-full">
+              <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
             </div>
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <Shield className="w-8 h-8 text-yellow-600" />
+            <div className="p-2 sm:p-3 bg-yellow-100 rounded-full">
+              <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
             </div>
           </div>
 
           {/* Main Title */}
-          <h1 className="text-6xl md:text-7xl font-bold text-gray-800 mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-800 mb-4 sm:mb-6 leading-tight">
             Did I Dodge a <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Bullet?</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-8">
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-2">
             Post-interview red flag checkup for the <span className="font-semibold text-orange-600">quietly suspicious</span>. 
             Trust your gut instincts and process those interview vibes.
           </p>
 
           {/* Features */}
-          <div className="flex flex-wrap justify-center gap-6 mb-12">
-            <div className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-medium">Research-backed flags</span>
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-6 mb-8 sm:mb-12">
+            <div className="flex items-center justify-center space-x-2">
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+              <span className="text-xs sm:text-sm font-medium">Research-backed flags</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Eye className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-medium">Trust your instincts</span>
+            <div className="flex items-center justify-center space-x-2">
+              <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+              <span className="text-xs sm:text-sm font-medium">Trust your instincts</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Heart className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-medium">Know your worth</span>
+            <div className="flex items-center justify-center space-x-2">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+              <span className="text-xs sm:text-sm font-medium">Know your worth</span>
             </div>
           </div>
 
@@ -132,17 +132,17 @@ export default function Home() {
           <div className="flex justify-center">
             <button
               onClick={handleScrollToCheckup}
-              className="group bg-gradient-to-r from-orange-400 to-orange-500 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:from-orange-500 hover:to-orange-600"
+              className="group bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:from-orange-500 hover:to-orange-600 w-auto max-w-xs sm:max-w-none"
             >
               Start Your Interview Checkup
-              <ChevronDown className="w-5 ml-2 inline-block group-hover:animate-bounce" />
+              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 ml-2 inline-block group-hover:animate-bounce" />
             </button>
           </div>
         </div>
       </section>
 
       {/* Interview Checkup Section */}
-      <section id="checkup-section" className="py-16 px-4 bg-amber-50">
+      <section id="checkup-section" className="py-8 sm:py-16 px-4 bg-amber-50">
         <div className="max-w-6xl mx-auto">
           {/* Main Content */}
           <main className="space-y-8">
@@ -157,7 +157,7 @@ export default function Home() {
           </main>
 
           {/* Footer */}
-          <footer className="mt-16 text-center text-gray-500">
+          <footer className="mt-12 sm:mt-16 text-center text-gray-500">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Heart className="w-4 h-4 text-orange-400" />
               <span className="text-sm">
