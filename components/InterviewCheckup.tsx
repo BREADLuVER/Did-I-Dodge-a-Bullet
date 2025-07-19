@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
-import { RedFlag } from '@/lib/redFlags';
+import { RedFlag, redFlagsService } from '@/lib/redFlags';
 import { Building2, Users, TrendingUp, Heart, FileText, BarChart3, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Company } from '@/lib/companyUtils';
 
@@ -11,7 +11,6 @@ const CompanyInput = lazy(() => import('./CompanyInput'));
 
 // Types
 interface InterviewCheckupProps {
-  redFlags: RedFlag[];
   markedFlags: Set<string>;
   onToggleFlag: (flagId: string) => void;
   onNewCheckup?: () => void;
@@ -30,31 +29,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Utility functions
-const getCuratedFlags = (allFlags: RedFlag[]): RedFlag[] => {
-  const medium = allFlags.filter(flag => flag.severity === 'medium');
-  const light = allFlags.filter(flag => flag.severity === 'light');
-
-  // Shuffle the arrays to get random selection
-  const shuffledMedium = [...medium].sort(() => 0.5 - Math.random());
-  const shuffledLight = [...light].sort(() => 0.5 - Math.random());
-
-  // Strategic placement: 3 medium (3 corners only), 6 light (edges + center + 1 corner)
-  const selectedMedium = shuffledMedium.slice(0, 3);
-  const selectedLight = shuffledLight.slice(0, 6);
-
-  // Create a 3x3 grid with strategic placement
-  // 3 corners: medium flags (positions 0, 2, 6)
-  // Edges + Center + 1 corner: light flags (positions 1, 3, 4, 5, 7, 8)
-  const grid = [
-    [selectedMedium[0], selectedLight[0], selectedMedium[1]], // Top row: medium, light, medium
-    [selectedLight[1], selectedLight[2], selectedLight[3]],   // Middle row: light, light, light
-    [selectedMedium[2], selectedLight[4], selectedLight[5]]   // Bottom row: medium, light, light
-  ];
-
-  // Flatten the grid and return
-  return grid.flat();
-};
+// Utility functions - now handled by RedFlagsService
 
 const getCategoryBreakdown = (markedFlags: Set<string>, allFlags: RedFlag[]) => {
   const markedFlagObjects = allFlags.filter(flag => markedFlags.has(flag.id));
@@ -681,14 +656,38 @@ const StepIndicator = ({
 };
 
 // Main InterviewCheckup Component
-export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewCheckup }: InterviewCheckupProps) => {
+export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: InterviewCheckupProps) => {
   const [step, setStep] = useState<'company-input' | 'checkup' | 'feedback' | 'deep-dive' | 'company'>('checkup');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [showCompanyInput, setShowCompanyInput] = useState(false);
   const [hasSavedSession, setHasSavedSession] = useState(false);
+  const [curatedFlags, setCuratedFlags] = useState<RedFlag[]>([]);
+  const [allRedFlags, setAllRedFlags] = useState<RedFlag[]>([]);
+  const [isLoadingFlags, setIsLoadingFlags] = useState(true);
 
-  // Memoize curated flags to prevent unnecessary recalculations
-  const curatedFlags = useMemo(() => getCuratedFlags(redFlags), [redFlags]);
+  // Load curated flags from Firebase
+  useEffect(() => {
+    const loadFlags = async () => {
+      try {
+        setIsLoadingFlags(true);
+        const [curated, allFlags] = await Promise.all([
+          redFlagsService.getCuratedFlags(9),
+          redFlagsService.getAllRedFlags()
+        ]);
+        setCuratedFlags(curated);
+        setAllRedFlags(allFlags);
+      } catch (error) {
+        console.error('Error loading red flags:', error);
+        // Fallback to empty arrays
+        setCuratedFlags([]);
+        setAllRedFlags([]);
+      } finally {
+        setIsLoadingFlags(false);
+      }
+    };
+
+    loadFlags();
+  }, []);
 
   // Persist state in localStorage
   const persistState = useCallback((key: string, value: any) => {
@@ -943,15 +942,24 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
             </div>
           )}
           
-          <QuickCheckup
-            curatedFlags={curatedFlags}
-            markedFlags={markedFlags}
-            onToggleFlag={onToggleFlag}
-            onSubmitResults={handleSubmitResults}
-            onRerollBoard={handleRerollBoard}
-            onBack={handleBackToCompanyInput}
-            companyName={selectedCompany?.name}
-          />
+          {isLoadingFlags ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading red flags...</p>
+              </div>
+            </div>
+          ) : (
+            <QuickCheckup
+              curatedFlags={curatedFlags}
+              markedFlags={markedFlags}
+              onToggleFlag={onToggleFlag}
+              onSubmitResults={handleSubmitResults}
+              onRerollBoard={handleRerollBoard}
+              onBack={handleBackToCompanyInput}
+              companyName={selectedCompany?.name}
+            />
+          )}
         </div>
       );
     case 'feedback':
@@ -983,7 +991,7 @@ export const InterviewCheckup = ({ redFlags, markedFlags, onToggleFlag, onNewChe
             </button>
           </div>
           <DeepDive
-            redFlags={redFlags}
+            redFlags={allRedFlags}
             onBackToResults={handleBackToResults}
           />
         </div>

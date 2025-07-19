@@ -44,6 +44,12 @@ service cloud.firestore {
     match /company_insights/{document} {
       allow read, write: if true;
     }
+    
+    // Allow read access to red_flags collection (write protected)
+    match /red_flags/{document} {
+      allow read: if true;
+      allow write: if false; // Only admin can write via Firebase Console
+    }
   }
 }
 ```
@@ -52,6 +58,7 @@ service cloud.firestore {
 The app will automatically create these collections:
 - `submissions` - Individual interview checkups
 - `company_insights` - Aggregated company data
+- `red_flags` - Red flag definitions (read-only for users)
 
 ### 6. Test the Setup
 1. Start your development server: `npm run dev`

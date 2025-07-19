@@ -29,39 +29,38 @@ let isInitialized = false;
 
 // Validate configuration with better debugging
 export const validateFirebaseConfig = (): boolean => {
-  const requiredKeys = [
-    'NEXT_PUBLIC_FIREBASE_API_KEY',
-    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    'NEXT_PUBLIC_FIREBASE_APP_ID',
-  ];
+  // Explicit mapping because process.env dynamic access is stripped out in the browser bundle
+  const envConfig: Record<string, string | undefined> = {
+    NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  };
 
-  // Check if any values are missing or invalid
-  const missingKeys = requiredKeys.filter(key => {
-    const value = process.env[key];
-    return !value || value === 'your_api_key_here' || value === '';
-  });
-  
+  const missingKeys = Object.entries(envConfig)
+    .filter(([, value]) => !value || value === 'your_api_key_here' || value === '')
+    .map(([key]) => key);
+
   if (missingKeys.length > 0) {
     console.error('Missing Firebase configuration keys:', missingKeys);
     console.error('Environment check:', {
       NODE_ENV: process.env.NODE_ENV,
-      hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      hasStorageBucket: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      hasMessagingSenderId: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      hasAppId: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      hasApiKey: !!envConfig.NEXT_PUBLIC_FIREBASE_API_KEY,
+      hasAuthDomain: !!envConfig.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      hasProjectId: !!envConfig.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      hasStorageBucket: !!envConfig.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      hasMessagingSenderId: !!envConfig.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      hasAppId: !!envConfig.NEXT_PUBLIC_FIREBASE_APP_ID,
     });
     console.error('Debug: Actual values (first 10 chars):', {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY?.substring(0, 10) + '...',
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.substring(0, 10) + '...',
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.substring(0, 10) + '...',
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID?.substring(0, 10) + '...',
+      apiKey: envConfig.NEXT_PUBLIC_FIREBASE_API_KEY?.substring(0, 10) + '...',
+      authDomain: envConfig.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.substring(0, 10) + '...',
+      projectId: envConfig.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: envConfig.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.substring(0, 10) + '...',
+      messagingSenderId: envConfig.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: envConfig.NEXT_PUBLIC_FIREBASE_APP_ID?.substring(0, 10) + '...',
     });
     return false;
   }

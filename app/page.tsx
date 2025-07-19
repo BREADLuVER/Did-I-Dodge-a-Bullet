@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, Suspense, lazy } from 'react';
-import { getBalancedRedFlags, RedFlag } from '@/lib/redFlags';
 import { Target, AlertTriangle, Heart, RefreshCw, ChevronDown, Zap, Shield, Eye } from 'lucide-react';
 
 // Lazy load heavy components
@@ -15,18 +14,13 @@ const LoadingSpinner = () => (
 );
 
 export default function Home() {
-  const [redFlags, setRedFlags] = useState<RedFlag[]>([]);
   const [markedFlags, setMarkedFlags] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load red flags asynchronously
-    const loadRedFlags = async () => {
+    // Load marked flags from localStorage on page load
+    const loadMarkedFlags = () => {
       try {
-        const flags = getBalancedRedFlags();
-        setRedFlags(flags);
-        
-        // Load marked flags from localStorage on page load
         const savedMarkedFlags = localStorage.getItem('markedFlags');
         if (savedMarkedFlags) {
           try {
@@ -37,17 +31,16 @@ export default function Home() {
           }
         }
       } catch (error) {
-        console.error('Error loading red flags:', error);
+        console.error('Error loading marked flags:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadRedFlags();
+    loadMarkedFlags();
   }, []);
 
   const handleNewCheckup = () => {
-    setRedFlags(getBalancedRedFlags());
     setMarkedFlags(new Set());
     localStorage.removeItem('markedFlags');
   };
@@ -148,7 +141,6 @@ export default function Home() {
           <main className="space-y-8">
             <Suspense fallback={<LoadingSpinner />}>
               <InterviewCheckup 
-                redFlags={redFlags}
                 markedFlags={markedFlags}
                 onToggleFlag={handleFlagToggle}
                 onNewCheckup={handleNewCheckup}

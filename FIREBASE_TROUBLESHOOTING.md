@@ -86,6 +86,18 @@ After adding environment variables, you MUST redeploy:
 2. Check the browser console for the detailed error message
 3. Verify the environment variables are set correctly in Vercel dashboard
 
+### Issue: "Missing or insufficient permissions" for red_flags collection
+**Solution**:
+1. Go to Firebase Console → Firestore Database → Rules
+2. Make sure your rules include the red_flags collection:
+```javascript
+match /red_flags/{document} {
+  allow read: if true;
+  allow write: if false;
+}
+```
+3. If the red_flags collection doesn't exist, it will be created automatically when you populate it
+
 ### Issue: "Works locally but not on Vercel"
 **Solution**:
 - Local `.env.local` file doesn't affect Vercel deployment
