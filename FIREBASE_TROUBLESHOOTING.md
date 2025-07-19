@@ -98,6 +98,17 @@ match /red_flags/{document} {
 ```
 3. If the red_flags collection doesn't exist, it will be created automatically when you populate it
 
+### Issue: "Missing or insufficient permissions" for companies collection
+**Solution**:
+1. Go to Firebase Console → Firestore Database → Rules
+2. Make sure your rules include the companies collection:
+```javascript
+match /companies/{document} {
+  allow read, write: if true;
+}
+```
+3. The companies collection is used for company search functionality
+
 ### Issue: "Works locally but not on Vercel"
 **Solution**:
 - Local `.env.local` file doesn't affect Vercel deployment

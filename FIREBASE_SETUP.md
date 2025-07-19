@@ -45,6 +45,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
     
+    // Allow read/write for companies collection
+    match /companies/{document} {
+      allow read, write: if true;
+    }
+    
     // Allow read access to red_flags collection (write protected)
     match /red_flags/{document} {
       allow read: if true;
@@ -58,6 +63,7 @@ service cloud.firestore {
 The app will automatically create these collections:
 - `submissions` - Individual interview checkups
 - `company_insights` - Aggregated company data
+- `companies` - Company database for search and insights
 - `red_flags` - Red flag definitions (read-only for users)
 
 ### 6. Test the Setup
