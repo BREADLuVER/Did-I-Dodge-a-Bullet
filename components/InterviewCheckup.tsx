@@ -724,7 +724,7 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
     }
   }, []);
 
-  // Load persisted state on mount
+  // Load persisted state on mount - but don't auto-restore step
   useEffect(() => {
     try {
       const savedStep = localStorage.getItem('checkupStep');
@@ -745,16 +745,11 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
           if (!validSteps.includes(parsedStep)) {
             localStorage.removeItem('checkupStep');
           } else {
-            // Restore the saved step immediately
-            setStep(parsedStep);
-            
+            // DON'T auto-restore the step - let user choose
             // Only show session restore notification if there are marked flags to restore
-            // and we're not on the company-input step (which doesn't need session restore)
-            if (parsedStep !== 'company-input') {
-              const savedMarkedFlags = localStorage.getItem('markedFlags');
-              if (savedMarkedFlags && markedFlags.size === 0) {
-                setHasSavedSession(true);
-              }
+            const savedMarkedFlags = localStorage.getItem('markedFlags');
+            if (savedMarkedFlags && markedFlags.size === 0) {
+              setHasSavedSession(true);
             }
           }
         } catch (error) {
@@ -762,13 +757,11 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
         }
       }
 
-      // Restore company and showInput state
+      // Restore company and showInput state (but don't auto-show company input)
       if (savedCompany) {
         setSelectedCompany(JSON.parse(savedCompany));
       }
-      if (savedShowInput) {
-        setShowCompanyInput(JSON.parse(savedShowInput));
-      }
+      // Don't auto-restore showCompanyInput - let user choose when to show it
     } catch (error) {
       console.error('Error loading persisted state:', error);
     }
