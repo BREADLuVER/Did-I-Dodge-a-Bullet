@@ -734,6 +734,10 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
 
       // Don't show session restore if user has dismissed it
       if (sessionDismissed === 'true') {
+        // Clear any remaining step data and reset to company-input
+        localStorage.removeItem('checkupStep');
+        setStep('company-input');
+        setShowCompanyInput(true);
         return;
       }
 
@@ -745,7 +749,18 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
           if (!validSteps.includes(parsedStep)) {
             localStorage.removeItem('checkupStep');
           } else {
-            // DON'T auto-restore the step - let user choose
+            // Check if we should restore the step based on company state
+            const hasValidCompany = savedCompany && JSON.parse(savedCompany);
+            
+            // Only restore checkup step if there's a valid company
+            if (parsedStep === 'checkup' && !hasValidCompany) {
+              // Clear the invalid step and reset to company-input
+              localStorage.removeItem('checkupStep');
+              setStep('company-input');
+              setShowCompanyInput(true);
+              return;
+            }
+            
             // Only show session restore notification if there are marked flags to restore
             const savedMarkedFlags = localStorage.getItem('markedFlags');
             if (savedMarkedFlags && markedFlags.size === 0) {
@@ -766,6 +781,17 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
       console.error('Error loading persisted state:', error);
     }
   }, [markedFlags.size]);
+
+  // Additional effect to ensure proper step reset on mount
+  useEffect(() => {
+    const sessionDismissed = localStorage.getItem('sessionDismissed');
+    if (sessionDismissed === 'true') {
+      // Force reset to company-input step
+      setStep('company-input');
+      setShowCompanyInput(true);
+      setSelectedCompany(null);
+    }
+  }, []);
 
   const handleCompanySubmit = useCallback((company: Company | null) => {
     updateSelectedCompany(company);
@@ -806,6 +832,8 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
 
   const handleNewCheckup = useCallback(() => {
     clearPersistedState();
+    localStorage.removeItem('markedFlags');
+    localStorage.setItem('sessionDismissed', 'true');
     setStep('company-input');
     setSelectedCompany(null);
     setShowCompanyInput(true);
@@ -819,17 +847,41 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
   }, [updateStep]);
 
   const handleBackToCompanyInput = useCallback(() => {
-    updateStep('company-input');
-  }, [updateStep]);
+    // Clear all persisted state when going back to company input
+    clearPersistedState();
+    localStorage.removeItem('markedFlags');
+    localStorage.setItem('sessionDismissed', 'true');
+    
+    // Reset to company input step
+    setStep('company-input');
+    setShowCompanyInput(true);
+    setSelectedCompany(null);
+  }, [clearPersistedState]);
 
   const handleRestoreSession = useCallback(() => {
     try {
       const savedStep = localStorage.getItem('checkupStep');
+      const savedCompany = localStorage.getItem('selectedCompany');
+      
       if (savedStep) {
         const parsedStep = JSON.parse(savedStep);
         // Validate that the step is a valid value
         const validSteps = ['company-input', 'checkup', 'feedback', 'deep-dive', 'company'];
+        
         if (validSteps.includes(parsedStep)) {
+          // Check if we should restore the step based on company state
+          const hasValidCompany = savedCompany && JSON.parse(savedCompany);
+          
+          // Only restore checkup step if there's a valid company
+          if (parsedStep === 'checkup' && !hasValidCompany) {
+            // Clear the invalid step and reset to company-input
+            localStorage.removeItem('checkupStep');
+            setStep('company-input');
+            setShowCompanyInput(true);
+            setHasSavedSession(false);
+            return;
+          }
+          
           setStep(parsedStep);
           setHasSavedSession(false);
         } else {
@@ -846,9 +898,6 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
   const handleDismissSession = useCallback(() => {
     setHasSavedSession(false);
     
-    // Get the current step before clearing
-    const currentStep = localStorage.getItem('checkupStep');
-    
     // Clear the saved session data
     clearPersistedState();
     // Also clear marked flags to prevent future session detection
@@ -856,14 +905,9 @@ export const InterviewCheckup = ({ markedFlags, onToggleFlag, onNewCheckup }: In
     // Set a flag to prevent session restore from showing again
     localStorage.setItem('sessionDismissed', 'true');
     
-    // If user was on company-input step, keep them there
-    // Otherwise, reset to checkup step
-    if (currentStep === '"company-input"') {
-      setStep('company-input');
-      setShowCompanyInput(true);
-    } else {
-      setStep('checkup');
-    }
+    // Always reset to company-input step when dismissing session
+    setStep('company-input');
+    setShowCompanyInput(true);
   }, [clearPersistedState]);
 
   // Handle step navigation from the indicator

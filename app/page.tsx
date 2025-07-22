@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, lazy } from 'react';
 import { Target, AlertTriangle, Heart, RefreshCw, ChevronDown, Zap, Shield, Eye } from 'lucide-react';
+import LinkedInButton from '@/components/LinkedInButton';
 
 // Lazy load heavy components
 const InterviewCheckup = lazy(() => import('@/components/InterviewCheckup').then(mod => ({ default: mod.InterviewCheckup })));
@@ -70,6 +71,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* LinkedIn Button */}
+      <LinkedInButton />
+      
       {/* Hero Section */}
       <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200 px-4 sm:px-6">
         {/* Background Pattern */}
